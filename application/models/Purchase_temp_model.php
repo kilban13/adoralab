@@ -1,12 +1,12 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Purchase_model extends CI_Model {
+class Purchase_temp_model extends CI_Model {
 
 	//Datatable start
-	var $table = 'db_purchase as a';
-	var $column_order = array( 'a.id','a.purchase_date','a.purchase_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.supplier_name','a.paid_amount','a.purchase_status','a.return_bit'); //set column field database for datatable orderable
-	var $column_search = array('a.id','a.purchase_date','a.purchase_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.supplier_name','a.paid_amount','a.purchase_status','a.return_bit'); //set column field database for datatable searchable 
+	var $table = 'db_tmp_purchase as a';
+	var $column_order = array( 'a.id','a.purchase_date','a.purchase_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.supplier_name','a.paid_amount','a.purchase_status','a.return_bit','a.approved_request'); //set column field database for datatable orderable
+	var $column_search = array('a.id','a.purchase_date','a.purchase_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.supplier_name','a.paid_amount','a.purchase_status','a.return_bit','a.approved_request'); //set column field database for datatable searchable 
 	var $order = array('a.id' => 'desc'); // default order 
 
 	public function __construct()
@@ -91,149 +91,7 @@ class Purchase_model extends CI_Model {
 	public function xss_html_filter($input){
 		return $this->security->xss_clean(html_escape($input));
 	}
-	public function Temp_verify_reject($tmp_pur_id){
-		$updateTempStatus=$this->db->query("update db_tmp_purchase set 
-							approved_request=2
-							where id=$tmp_pur_id");
-		$this->session->set_flashdata('success', 'Success!! Record Rjected Successfully!');
-		return "success<<<###>>>$tmp_pur_id";
-	}
-		//Save Cutomers
-	public function Temp_verify_save_to_main_sale($tmp_pur_id){
-		//Filtering XSS and html escape from user inputs 
-		extract($this->xss_html_filter(array_merge($this->data,$_POST,$_GET)));
-		//echo "<pre>";print_r($this->xss_html_filter(array_merge($this->data,$_POST,$_GET)));exit();
-		
-		$this->db->trans_begin();
-		// $pur_date=date('Y-m-d',strtotime($pur_date));
 
-		$query=$this->db->query("select * from db_tmp_purchase where upper(id)=upper('$tmp_pur_id')");
-		if($query->num_rows()==0){
-			show_404();exit;
-		}
-
-		$query=$query->row();
-
-		$supplier_id = $query->supplier_id;
-
-	    $qs5="select purchase_init from db_company";
-		$q5=$this->db->query($qs5);
-		$purchase_init=$q5->row()->purchase_init;
-
-		$this->db->query("ALTER TABLE db_purchase AUTO_INCREMENT = 1");
-		$q4=$this->db->query("select coalesce(max(id),0)+1 as maxid from db_purchase");
-		$maxid=$q4->row()->maxid;
-		$purchase_code=$purchase_init.str_pad($maxid, 4, '0', STR_PAD_LEFT);
-
-		    $purchase_entry = array(
-		    				'purchase_code' 			=> $purchase_code, 
-		    				'reference_no' 				=> $reference_no."_TMP_".$query->purchase_code, 
-		    				'purchase_date' 			=> $query->purchase_date,
-		    				'purchase_status' 			=> $query->purchase_status,
-		    				'supplier_id' 				=> $query->supplier_id,
-		    				/*'warehouse_id' 				=> $warehouse_id,*/
-		    				/*Other Charges*/
-		    				'other_charges_input' 		=> $query->other_charges_input,
-		    				'other_charges_tax_id' 		=> $query->other_charges_tax_id,
-		    				'other_charges_amt' 		=> $query->other_charges_amt,
-		    				/*Discount*/
-		    				'discount_to_all_input' 	=> $query->discount_to_all_input,
-		    				'discount_to_all_type' 		=> $query->discount_to_all_type,
-		    				'tot_discount_to_all_amt' 	=> $query->tot_discount_to_all_amt,
-		    				/*Subtotal & Total */
-		    				'subtotal' 					=> $query->subtotal,
-		    				'round_off' 				=> $query->round_off,
-		    				'grand_total' 				=> $query->grand_total,
-		    				'purchase_note' 			=> $query->purchase_note,
-		    				/*System Info*/
-		    				'created_date' 				=> $query->created_date,
-		    				'created_time' 				=> $query->created_time,
-		    				'created_by' 				=>$query->created_by,
-		    				'system_ip' 				=> $query->system_ip,
-		    				'system_name' 				=> $query->system_name,
-		    				'status' 					=> 1,
-		    			);
-
-			$q1 = $this->db->insert('db_purchase', $purchase_entry);
-			$purchase_id = $this->db->insert_id();
-		
-		//end
-
-		$items=$this->db->select("*")->where("purchase_id=$tmp_pur_id")->get("db_tmp_purchaseitems");
-
-      	if($items->num_rows()>0){
-      		foreach ($items->result() as $item) {
-				
-				$purchaseitems_entry = array(
-		    				'purchase_id' 		=> $purchase_id,
-		    				'purchase_status'	=> $item->purchase_status,
-		    				'item_id' 			=> $item->item_id,
-		    				'purchase_qty' 		=> $item->purchase_qty,
-		    				'price_per_unit' 	=> $item->price_per_unit,
-		    				'tax_id' 			=> $item->tax_id,
-		    				'tax_amt' 			=> $item->tax_amt,
-		    				'tax_type' 			=> $item->tax_type,
-		    				'unit_discount_per' => $item->unit_discount_per,
-		    				'discount_amt' 		=> $item->discount_amt,
-		    				'unit_total_cost' 	=> $item->unit_total_cost,
-		    				'total_cost' 		=> $item->total_cost,
-		    				//'profit_margin_per' => $profit_margin_per,
-		    				//'unit_sales_price' 	=> $unit_sales_price,
-		    				'status'			=> 1,
-		    			);
-
-				$q2 = $this->db->insert('db_purchaseitems', $purchaseitems_entry);
-				
-				//UPDATE itemS QUANTITY IN itemS TABLE
-				$this->load->model('pos_model');				
-				$q6=$this->pos_model->update_items_quantity($item->item_id);
-				if(!$q6){
-					return "failed";
-				}
-			}
-		
-		}//for end
-
-		// if($amount=='' || $amount==0){$amount=null;}
-		// if($amount>0 && !empty($payment_type)){
-
-
-		$payments=$this->db->select("*")->where("purchase_id=$tmp_pur_id")->get("db_tmp_purchasepayments");
-      	if($payments->num_rows()>0){
-      		foreach ($payments->result() as $amount) {
-			$purchasepayments_entry = array(
-					'purchase_id' 		=> $purchase_id, 
-					'payment_date'		=> $amount->payment_date,
-					'payment_type' 		=> $amount->payment_type,
-					'payment' 			=> $amount->payment,
-					'payment_note' 		=> $amount->payment_note,
-					'created_date' 		=> $amount->created_date,
-    				'created_time' 		=> $amount->created_time,
-    				'created_by' 		=> $amount->created_by,
-    				'system_ip' 		=> $amount->system_ip,
-    				'system_name' 		=> $amount->system_name,
-    				'status' 			=> 1,
-				);
-
-			$q3 = $this->db->insert('db_purchasepayments', $purchasepayments_entry);
-			
-			}
-		}
-		
-		$q10=$this->update_purchase_payment_status($purchase_id,$supplier_id);
-
-		if($q10!=1){
-			return "failed";
-		}
-		$updateTempStatus=$this->db->query("update db_tmp_purchase set 
-							approved_request=1
-							where id=$tmp_pur_id");
-
-		$this->db->trans_commit();
-		$this->session->set_flashdata('success', 'Success!! Record Approved Successfully!');
-		return "success<<<###>>>$purchase_id";
-		
-	}//verify_save_and_update() function end
 	//Save Cutomers
 	public function verify_save_and_update(){
 		//Filtering XSS and html escape from user inputs 
@@ -255,10 +113,10 @@ class Purchase_model extends CI_Model {
 			$q5=$this->db->query($qs5);
 			$purchase_init=$q5->row()->purchase_init;
 
-			$this->db->query("ALTER TABLE db_purchase AUTO_INCREMENT = 1");
-			$q4=$this->db->query("select coalesce(max(id),0)+1 as maxid from db_purchase");
+			$this->db->query("ALTER TABLE db_tmp_purchase AUTO_INCREMENT = 1");
+			$q4=$this->db->query("select coalesce(max(id),0)+1 as maxid from db_tmp_purchase");
 			$maxid=$q4->row()->maxid;
-			$purchase_code=$purchase_init.str_pad($maxid, 4, '0', STR_PAD_LEFT);
+			$purchase_code="TMP_".$purchase_init.str_pad($maxid, 4, '0', STR_PAD_LEFT);
 
 		    $purchase_entry = array(
 		    				'purchase_code' 			=> $purchase_code, 
@@ -289,7 +147,7 @@ class Purchase_model extends CI_Model {
 		    				'status' 					=> 1,
 		    			);
 
-			$q1 = $this->db->insert('db_purchase', $purchase_entry);
+			$q1 = $this->db->insert('db_tmp_purchase', $purchase_entry);
 			$purchase_id = $this->db->insert_id();
 		}
 		else if($command=='update'){	
@@ -314,9 +172,9 @@ class Purchase_model extends CI_Model {
 		    				'purchase_note' 			=> $purchase_note,
 		    			);
 					
-			$q1 = $this->db->where('id',$purchase_id)->update('db_purchase', $purchase_entry);
+			$q1 = $this->db->where('id',$purchase_id)->update('db_tmp_purchase', $purchase_entry);
 
-			$q11=$this->db->query("delete from db_purchaseitems where purchase_id='$purchase_id'");
+			$q11=$this->db->query("delete from db_tmp_purchaseitems where purchase_id='$purchase_id'");
 			if(!$q11){
 				return "failed";
 			}
@@ -375,14 +233,14 @@ class Purchase_model extends CI_Model {
 		    				'status'			=> 1,
 		    			);
 
-				$q2 = $this->db->insert('db_purchaseitems', $purchaseitems_entry);
+				$q2 = $this->db->insert('db_tmp_purchaseitems', $purchaseitems_entry);
 				
 				//UPDATE itemS QUANTITY IN itemS TABLE
-				$this->load->model('pos_model');				
-				$q6=$this->pos_model->update_items_quantity($item_id);
-				if(!$q6){
-					return "failed";
-				}
+				// $this->load->model('pos_model');				
+				// $q6=$this->pos_model->update_items_quantity($item_id);
+				// if(!$q6){
+				// 	return "failed";
+				// }
 
 				/*Update the item profit margin & item sales price*/
 				/*$this->db->where('id',$item_id)->update('db_items',array(
@@ -413,7 +271,7 @@ class Purchase_model extends CI_Model {
     				'status' 			=> 1,
 				);
 
-			$q3 = $this->db->insert('db_purchasepayments', $purchasepayments_entry);
+			$q3 = $this->db->insert('db_tmp_purchasepayments', $purchasepayments_entry);
 			
 		}
 		
@@ -423,7 +281,7 @@ class Purchase_model extends CI_Model {
 		}
 
 		$this->db->trans_commit();
-		$this->session->set_flashdata('success', 'Success!! Record Saved Successfully!');
+		$this->session->set_flashdata('success', 'Success!! Your Purchase Record Sent For Approval!');
 		return "success<<<###>>>$purchase_id";
 		
 	}//verify_save_and_update() function end
@@ -449,11 +307,11 @@ class Purchase_model extends CI_Model {
 	}
 
 	public function update_purchase_payment_status_by_purchase_id($purchase_id,$supplier_id){
-		$q8=$this->db->query("select COALESCE(SUM(payment),0) as payment from db_purchasepayments where purchase_id='$purchase_id'");
+		$q8=$this->db->query("select COALESCE(SUM(payment),0) as payment from db_tmp_purchasepayments where purchase_id='$purchase_id'");
 		$sum_of_payments=$q8->row()->payment;
 		
 
-		$q9=$this->db->query("select coalesce(sum(grand_total),0) as total from db_purchase where id='$purchase_id'");
+		$q9=$this->db->query("select coalesce(sum(grand_total),0) as total from db_tmp_purchase where id='$purchase_id'");
 		$payble_total=$q9->row()->total;
 		
 		//$pending_amt=$payble_total-$sum_of_payments;
@@ -470,21 +328,21 @@ class Purchase_model extends CI_Model {
 		}
 
 
-		$q7=$this->db->query("update db_purchase set 
+		$q7=$this->db->query("update db_tmp_purchase set 
 							payment_status='$payment_status',
 							paid_amount=$sum_of_payments 
 							where id='$purchase_id'");
 		//$supplier_id =$this->db->query("select supplier_id from db_purchase where id=$purchase_id")->row()->supplier_id;
 
-		$purchase_due =$this->db->query("select COALESCE(SUM(grand_total),0)-COALESCE(SUM(paid_amount),0) as purchase_due from db_purchase where supplier_id=$supplier_id and purchase_status='Received'")->row()->purchase_due;
+		// $purchase_due =$this->db->query("select COALESCE(SUM(grand_total),0)-COALESCE(SUM(paid_amount),0) as purchase_due from db_purchase where supplier_id=$supplier_id and purchase_status='Received'")->row()->purchase_due;
 		
-		$q12 = $this->db->query("update db_suppliers set purchase_due=$purchase_due where id=$supplier_id");
-		if(!$q7 || !$q12){
-			return false;
-		}
-		if(!record_supplier_payment($supplier_id)){
-			return false;
-		}
+		// $q12 = $this->db->query("update db_suppliers set purchase_due=$purchase_due where id=$supplier_id");
+		// if(!$q7 || !$q12){
+		// 	return false;
+		// }
+		// if(!record_supplier_payment($supplier_id)){
+		// 	return false;
+		// }
 		return true;
 
 	}

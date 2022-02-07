@@ -92,7 +92,12 @@ $('#save,#update').click(function (e) {
 				result=result.split("<<<###>>>");
 					if(result[0]=="success")
 					{
-						location.href=base_url+"purchase/invoice/"+result[1];
+            let userType=$("#user_type").val();
+            if(userType == 1){
+             location.href=base_url+"purchase/invoice/"+result[1];             
+            }else{
+             location.href=base_url+"purchase";
+            }
 					}
 					else if(result[0]=="failed")
 					{

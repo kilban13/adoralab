@@ -173,12 +173,12 @@
           <a href="#">
             <i class=" fa fa-shopping-cart text-aqua"></i> <span><?= $this->lang->line('sales'); ?>
               
-              <?php 
+               <?php 
 
               if($this->session->userdata('inv_userid') == 1){
                 $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=0")->row()->sCount;
                 if($sCount > 0){
-                  echo "<blink><span class='fa fa-warning text-red'></span></blink>";
+                  echo "<span class='label label-danger'>".$sCount."</span>";
                 }else{
                   
                 }
@@ -206,7 +206,6 @@
           <?php 
 
               if($this->session->userdata('inv_userid') == 1){
-                $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=0")->row()->sCount;
                 if($sCount > 0){
                   echo "<span class='label label-danger'>".$sCount."</span>";
                 }else{
@@ -259,7 +258,21 @@
     <?php if($CI->permissions('purchase_add') || $CI->permissions('purchase_view') || $CI->permissions('purchase_return_view') || $CI->permissions('new_purchase_return')) { ?>
 		<li class="purchase-list-active-li purchase-active-li purchase-returns-list-active-li purchase-returns-active-li treeview">
           <a href="#">
-            <i class="fa fa-th-large text-aqua"></i> <span><?= $this->lang->line('purchase'); ?></span>
+            <i class="fa fa-th-large text-aqua"></i> <span><?= $this->lang->line('purchase'); ?>
+              
+
+              <?php 
+
+              if($this->session->userdata('inv_userid') == 1){
+                $ssCount = $this->db->query("select count(*) as ssCount from db_tmp_purchase where approved_request=0")->row()->ssCount;
+                if($ssCount > 0){
+                  echo "<span class='label label-danger'>".$ssCount."</span>";
+                }else{
+                  
+                }
+              }
+            ?>
+            </span>
             <span class="pull-right-container">
               <i class="fa fa-angle-left pull-right"></i>
             </span>
@@ -269,7 +282,18 @@
     		    <li class="purchase-active-li"><a href="<?php echo $base_url; ?>purchase/add"><i class="fa fa-plus-square-o "></i> <span><?= $this->lang->line('new_purchase'); ?></span></a></li>
             <?php } ?>
             <?php if($CI->permissions('purchase_view')) { ?>
-            <li class="purchase-list-active-li"><a href="<?php echo $base_url; ?>purchase"><i class="fa fa-list "></i> <span><?= $this->lang->line('purchase_list'); ?></span></a></li>
+            <li class="purchase-list-active-li"><a href="<?php echo $base_url; ?>purchase"><i class="fa fa-list "></i> <span><?= $this->lang->line('purchase_list'); ?></span>
+               <?php 
+
+              if($this->session->userdata('inv_userid') == 1){
+                if($ssCount > 0){
+                  echo "<span class='label label-danger'>".$ssCount."</span>";
+                }else{
+                }
+              }
+
+            ?>
+            </a></li>
             <?php } ?>
             <?php if($CI->permissions('purchase_return_view')) { ?>
             <li class="purchase-returns-active-li"><a href="<?php echo $base_url; ?>purchase_return/create"><i class="fa fa-plus-square-o "></i> <span><?= $this->lang->line('new_purchase_return'); ?></span></a></li>

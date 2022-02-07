@@ -6,6 +6,7 @@ class Purchase extends MY_Controller {
 		parent::__construct();
 		$this->load_global();
 		$this->load->model('purchase_model','purchase');
+		$this->load->model('purchase_temp_model','purchase_temp');
 	}
 
 	public function index()
@@ -21,7 +22,13 @@ class Purchase extends MY_Controller {
 		$this->permission_check('purchase_add');
 		$data=$this->data;
 		$data['page_title']=$this->lang->line('purchase');
-		$this->load->view('purchase',$data);
+
+		if($this->session->userdata('inv_userid') == 1){
+			$this->load->view('purchase',$data);
+		}else{
+			$this->load->view('purchase_tmp',$data);
+		}
+		
 	}
 
 	public function purchase_save_and_update(){
@@ -29,13 +36,47 @@ class Purchase extends MY_Controller {
 		$this->form_validation->set_rules('supplier_id', 'Supplier Name', 'trim|required');
 		
 		if ($this->form_validation->run() == TRUE) {
-	    	$result = $this->purchase->verify_save_and_update();
-	    	echo $result;
+
+			if($this->session->userdata('inv_userid') != 1){
+				$result = $this->purchase_temp->verify_save_and_update();
+	    		echo $result;
+			}else{
+				$result = $this->purchase->verify_save_and_update();
+	    		echo $result;
+			}
+
+	    	
 		} else {
 			echo "Please Fill Compulsory(* marked) Fields.";
 		}
 	}
-	
+	public function request_invoice($id){
+		if(!$this->permissions('purchase_add') && !$this->permissions('purchase_edit')){
+			$this->show_access_denied_page();
+		}
+		$data=$this->data;
+		$data=array_merge($data,array('purchase_id'=>$id));
+		$data['page_title']=$this->lang->line('purchase_invoice');
+		$this->load->view('pur-invoice-tmp',$data);
+	}
+	public function request_invoice_approved($id){
+
+		if($this->session->userdata('inv_userid') == 1){
+			$result = $this->purchase->Temp_verify_save_to_main_sale($id);
+			echo $result;
+		}else{
+			show_404();exit;
+		}
+		
+	}
+	public function request_invoice_reject($id){
+		if($this->session->userdata('inv_userid') == 1){
+			$result = $this->purchase->Temp_verify_reject($id);
+			echo $result;
+		}else{
+			show_404();exit;
+		}
+	}
 	public function update($id){
 		$this->permission_check('purchase_edit');
 		$data=$this->data;
@@ -66,7 +107,74 @@ class Purchase extends MY_Controller {
 			echo "Please Fill Compulsory(* marked) Fields.";
 		}
 	}
+	public function temp_ajax_list()
+	{
+		$list = $this->purchase_temp->get_datatables();
+		
+		$data = array();
+		$no = $_POST['start'];
+		foreach ($list as $purchase) {
+			
+			$no++;
+			$row = array();
+			$strS='';
 
+			if($purchase->approved_request == 0){
+
+	          $strS= "<span class='label label-warning' style='cursor:pointer'>Pending</span>";
+			}
+	        if($purchase->approved_request==1){
+	          $strS="<span class='label label-success' style='cursor:pointer'> Approved </span>";
+	        }
+	        if($purchase->approved_request==2){
+	          $strS="<span class='label label-danger' style='cursor:pointer'> Rejected </span>";
+	        }
+
+			$row[] = $strS;
+			$row[] = show_date($purchase->purchase_date);
+
+			$info = (!empty($purchase->return_bit)) ? "\n<span class='label label-danger' style='cursor:pointer'><i class='fa fa-fw fa-undo'></i>Return Raised</span>" : '';
+
+			$row[] = $purchase->purchase_code.$info;
+			$row[] = $purchase->purchase_status;
+			$row[] = $purchase->reference_no;
+			$row[] = $purchase->supplier_name;
+			/*$row[] = $purchase->warehouse_name;*/
+			$row[] = app_number_format($purchase->grand_total);
+			$row[] = app_number_format($purchase->paid_amount);
+			$row[] = app_number_format($purchase->purchase_due);
+					$str='';
+					if($purchase->payment_status=='Unpaid')
+			          $str= "<span class='label label-danger' style='cursor:pointer'>Unpaid </span>";
+			        if($purchase->payment_status=='Partial')
+			          $str="<span class='label label-warning' style='cursor:pointer'> Partial </span>";
+			        if($purchase->payment_status=='Paid')
+			          $str="<span class='label label-success' style='cursor:pointer'> Paid </span>";
+
+			$row[] = $str;
+			$row[] = ucfirst($purchase->created_by);
+						$str2 = '<div class="btn-group" title="View Account">
+										
+										';
+											$str2.='
+												<a title="View Invoice" class="btn btn-success btn-sm" href="purchase/request_invoice/'.$purchase->id.'" >
+													View
+												</a>
+											</div>';		
+
+			$row[] = $str2;
+			$data[] = $row;
+		}
+
+		$output = array(
+						"draw" => $_POST['draw'],
+						"recordsTotal" => $this->purchase_temp->count_all(),
+						"recordsFiltered" => $this->purchase_temp->count_filtered(),
+						"data" => $data,
+				);
+		//output to json format
+		echo json_encode($output);
+	}
 	public function ajax_list()
 	{
 		$list = $this->purchase->get_datatables();

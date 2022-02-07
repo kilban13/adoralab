@@ -6,6 +6,7 @@
 <!-- </copy> -->  
 </head>
 <body class="hold-transition skin-blue sidebar-mini">
+
 <div class="wrapper">
 
   <?php include"sidebar.php"; ?>
@@ -16,11 +17,12 @@
     <section class="content-header">
       <h1>
         <?= $this->lang->line('invoice'); ?>
+        <small>Add/Update Invoice</small>
       </h1>
       <ol class="breadcrumb">
         <li><a href="<?php echo $base_url; ?>dashboard"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li><a href="<?php echo $base_url; ?>sales"><?= $this->lang->line('sales_list'); ?></a></li>
-        <li><a href="<?php echo $base_url; ?>sales/add"><?= $this->lang->line('new_sales'); ?></a></li>
+        <li><a href="<?php echo $base_url; ?>purchase"><?= $this->lang->line('purchase_list'); ?></a></li>
+        <li><a href="<?php echo $base_url; ?>purchase/add"><?= $this->lang->line('new_purchase'); ?></a></li>
         <li class="active"><?= $this->lang->line('invoice'); ?></li>
       </ol>
     </section>
@@ -32,7 +34,6 @@
       </div>
     </div>
     <?php
-    $CI =& get_instance();
     $q1=$this->db->query("select * from db_company where id=1 and status=1");
     $res1=$q1->row();
     $company_name=$res1->company_name;
@@ -48,10 +49,10 @@
     $company_pan_no=$res1->pan_no;
 
     
-    $q3=$this->db->query("SELECT a.customer_name,a.mobile,a.phone,a.gstin,a.tax_number,a.email,
+    $q3=$this->db->query("SELECT a.supplier_name,a.mobile,a.phone,a.gstin,a.tax_number,a.email,
                            a.opening_balance,a.country_id,a.state_id,a.city,
-                           a.postcode,a.address,b.sales_date,b.created_time,b.reference_no,
-                           b.sales_code,b.sales_status,b.sales_note,b.approved_request,
+                           a.postcode,a.address,b.purchase_date,b.reference_no,
+                           b.purchase_code,b.purchase_status,b.purchase_note,b.approved_request,
                            coalesce(b.grand_total,0) as grand_total,
                            coalesce(b.subtotal,0) as subtotal,
                            coalesce(b.paid_amount,0) as paid_amount,
@@ -62,37 +63,35 @@
                            b.discount_to_all_type,
                            coalesce(b.tot_discount_to_all_amt,0) as tot_discount_to_all_amt,
                            coalesce(b.round_off,0) as round_off,
-                           b.payment_status,b.pos
+                           b.payment_status
 
-                           FROM db_customers a,
-                           db_tmp_sales b 
+                           FROM db_suppliers a,
+                           db_tmp_purchase b 
                            WHERE 
-                           a.`id`=b.`customer_id` AND 
-                           b.`id`='$sales_id' 
+                           a.`id`=b.`supplier_id` AND 
+                           b.`id`='$purchase_id' 
                            ");
-                        
+                           /*GROUP BY 
+                           b.`supplier_code`*/
     
     $res3=$q3->row();
-    $customer_name=$res3->customer_name;
-    $customer_mobile=$res3->mobile;
-    $customer_phone=$res3->phone;
-    $customer_email=$res3->email;
-    $customer_country=$res3->country_id;
-    $customer_state=$res3->state_id;
-    $customer_city=$res3->city;
-    $customer_address=$res3->address;
-    $customer_postcode=$res3->postcode;
-    $customer_gst_no=$res3->gstin;
-    $customer_tax_number=$res3->tax_number;
-    $customer_opening_balance=$res3->opening_balance;
-    $sales_date=$res3->sales_date;
-    $created_time=$res3->created_time;
+    $supplier_name=$res3->supplier_name;
+    $supplier_mobile=$res3->mobile;
+    $supplier_phone=$res3->phone;
+    $supplier_email=$res3->email;
+    $supplier_state=$res3->state_id;
+    $supplier_city=$res3->city;
+    $supplier_address=$res3->address;
+    $supplier_postcode=$res3->postcode;
+    $supplier_gst_no=$res3->gstin;
+    $supplier_tax_number=$res3->tax_number;
+    $supplier_opening_balance=$res3->opening_balance;
+    $purchase_date=$res3->purchase_date;
     $reference_no=$res3->reference_no;
-    $sales_code=$res3->sales_code;
-    $sales_status=$res3->sales_status;
-    $sales_note=$res3->sales_note;
+    $purchase_code=$res3->purchase_code;
+    $purchase_status=$res3->purchase_status;
+    $purchase_note=$res3->purchase_note;
     $approved_request=$res3->approved_request;
-
     
     $subtotal=$res3->subtotal;
     $grand_total=$res3->grand_total;
@@ -106,15 +105,11 @@
     $tot_discount_to_all_amt=$res3->tot_discount_to_all_amt;
     $round_off=$res3->round_off;
     $payment_status=$res3->payment_status;
-    $pos=$res3->pos;
     
-    if(!empty($customer_country)){
-      $customer_country = $this->db->query("select country from db_country where id='$customer_country'")->row()->country;  
+    $supplier_country = $this->db->query("select country from db_country where id=".$res3->country_id)->row()->country;
+    if(!empty($supplier_state)){
+      $supplier_state = $this->db->query("select state from db_states where id=".$res3->state_id)->row()->state;
     }
-    if(!empty($customer_state)){
-      $customer_state = $this->db->query("select state from db_states where id='$customer_state'")->row()->state;  
-    }
-    
     ?>
 
 
@@ -125,9 +120,8 @@
       <div class="row">
         <div class="col-xs-12">
           <h2 class="page-header">
-            <i class="fa fa-globe"></i> <?= $this->lang->line('sales_invoice'); ?> 
-
-            <?php  if($approved_request == 1){  ?>
+            <i class="fa fa-globe"></i> <?= $this->lang->line('purchase_invoice'); ?>
+              <?php  if($approved_request == 1){  ?>
 
               <span href="#" class="label label-success" >
                   <i class="fa  fa-check"></i> Approved
@@ -142,8 +136,7 @@
               </span>
 
             <?php }  ?>
-
-            <small class="pull-right">Date: <?php echo  show_date($sales_date)." ".$created_time; ?></small>
+            <small class="pull-right">Date: <?= show_date($purchase_date); ?></small>
           </h2>
         </div>
         <!-- /.col -->
@@ -167,39 +160,39 @@
         </div>
         <!-- /.col -->
         <div class="col-sm-4 invoice-col">
-          <i><?= $this->lang->line('customer_details'); ?><br></i>
+          <i><?= $this->lang->line('supplier_details'); ?><br></i>
           <address>
-            <strong><?php echo  $customer_name; ?></strong><br>
+            <strong><?php echo  $supplier_name; ?></strong><br>
             <?php 
-              if(!empty($customer_address)){
-                echo $customer_address;
+              if(!empty($supplier_address)){
+                echo $supplier_address;
               }
-              if(!empty($customer_country)){
-                echo $customer_country;
+              if(!empty($supplier_country)){
+                echo $supplier_country;
               }
-              if(!empty($customer_state)){
-                echo ",".$customer_state;
+              if(!empty($supplier_state)){
+                echo ",".$supplier_state;
               }
-              if(!empty($customer_city)){
-                echo ",".$customer_city;
+              if(!empty($supplier_city)){
+                echo ",".$supplier_city;
               }
-              if(!empty($customer_postcode)){
-                echo "-".$customer_postcode;
+              if(!empty($supplier_postcode)){
+                echo "-".$supplier_postcode;
               }
             ?>
             <br>
-            <?php echo (!empty(trim($customer_mobile))) ? $this->lang->line('mobile').": ".$customer_mobile."<br>" : '';?>
-            <?php echo (!empty(trim($customer_phone))) ? $this->lang->line('phone').": ".$customer_phone."<br>" : '';?>
-            <?php echo (!empty(trim($customer_email))) ? $this->lang->line('email').": ".$customer_email."<br>" : '';?>
-            <?php echo (!empty(trim($customer_gst_no))) ? $this->lang->line('gst_number').": ".$customer_gst_no."<br>" : '';?>
-            <?php echo (!empty(trim($customer_tax_number))) ? $this->lang->line('tax_number').": ".$customer_tax_number."<br>" : '';?>
+            <?php echo (!empty(trim($supplier_mobile))) ? $this->lang->line('mobile').": ".$supplier_mobile."<br>" : '';?>
+            <?php echo (!empty(trim($supplier_phone))) ? $this->lang->line('phone').": ".$supplier_phone."<br>" : '';?>
+            <?php echo (!empty(trim($supplier_email))) ? $this->lang->line('email').": ".$supplier_email."<br>" : '';?>
+            <?php echo (!empty(trim($supplier_gst_no))) ? $this->lang->line('gst_number').": ".$supplier_gst_no."<br>" : '';?>
+            <?php echo (!empty(trim($supplier_tax_number))) ? $this->lang->line('tax_number').": ".$supplier_tax_number."<br>" : '';?>
+
           </address>
         </div>
         <!-- /.col -->
         <div class="col-sm-4 invoice-col">
-          <b><?= $this->lang->line('invoice'); ?> #<?php echo  $sales_code; ?></b><br>
-          <b><?= $this->lang->line('sales_status'); ?> :<?php echo  $sales_status; ?></b><br>
-          <b><?= $this->lang->line('reference_no'); ?> :<?php echo  $reference_no; ?></b><br>
+          <b><?= $this->lang->line('invoice'); ?> #<?php echo  $purchase_code; ?></b><br>
+          <b><?= $this->lang->line('purchase_status'); ?> :<?php echo  $purchase_status; ?></b><br>
          
         </div>
         <!-- /.col -->
@@ -214,9 +207,8 @@
             <tr>
               <th>#</th>
               <th><?= $this->lang->line('item_name'); ?></th>
-              <th><?= $this->lang->line('unit_price'); ?></th>
+              <th><?= $this->lang->line('purchase_price'); ?></th>
               <th><?= $this->lang->line('quantity'); ?></th>
-              <th><?= $this->lang->line('net_cost'); ?></th>
               <th><?= $this->lang->line('tax'); ?></th>
               <th><?= $this->lang->line('tax_amount'); ?></th>
               <th><?= $this->lang->line('discount'); ?></th>
@@ -230,44 +222,40 @@
               <?php
               $i=0;
               $tot_qty=0;
-              $tot_sales_price=0;
+              $tot_purchase_price=0;
               $tot_tax_amt=0;
               $tot_discount_amt=0;
+              $tot_unit_total_cost=0;
               $tot_total_cost=0;
-
-              $q2=$this->db->query("SELECT a.description, c.item_name, a.sales_qty,a.tax_type,
+              $q2=$this->db->query("SELECT c.item_name, a.purchase_qty,a.tax_type,
                                   a.price_per_unit, b.tax,b.tax_name,a.tax_amt,
-                                  a.discount_input,a.discount_amt, a.unit_total_cost,
+                                  a.unit_discount_per,a.discount_amt, a.unit_total_cost,
                                   a.total_cost 
                                   FROM 
-                                  db_tmp_salesitems AS a,db_tax AS b,db_items AS c 
+                                  db_tmp_purchaseitems AS a,db_tax AS b,db_items AS c 
                                   WHERE 
-                                  c.id=a.item_id AND b.id=a.tax_id AND a.sales_id='$sales_id'");
+                                  c.id=a.item_id AND b.id=a.tax_id AND a.purchase_id='$purchase_id'");
               foreach ($q2->result() as $res2) {
                   $str = ($res2->tax_type=='Inclusive')? 'Inc.' : 'Exc.';
-                  $discount = (empty($res2->discount_input)||$res2->discount_input==0)? '0':$res2->discount_input."%";
-                  $discount_amt = (empty($res2->discount_amt)||$res2->discount_input==0)? '0':$res2->discount_amt."";
+                  $discount = (empty($res2->unit_discount_per)||$res2->unit_discount_per==0)? '0':$res2->unit_discount_per."%";
+                  $discount_amt = (empty($res2->discount_amt)||$res2->unit_discount_per==0)? '0':$res2->discount_amt."";
                   echo "<tr>";  
                   echo "<td>".++$i."</td>";
-                  echo "<td>";
-                    echo $res2->item_name;
-                    echo (!empty($res2->description)) ? "<br><i>[".nl2br($res2->description)."]</i>" : '';
-                  echo "</td>";
-                  echo "<td class='text-right'>".$CI->currency(number_format($res2->price_per_unit,2,'.',''))."</td>";
-                  echo "<td>".$res2->sales_qty."</td>";
-                  echo "<td class='text-right'>".$CI->currency(number_format(($res2->price_per_unit * $res2->sales_qty),2,'.',''))."</td>";
-                  
-                  echo "<td>".$res2->tax."%<br>".$res2->tax_name."[".$str."]</td>";
+                  echo "<td>".$res2->item_name."</td>";
+                  echo "<td>".$CI->currency($res2->price_per_unit)."</td>";
+                  echo "<td>".$res2->purchase_qty."</td>";
+                  echo "<td>".$res2->tax_name."[".$str."]</td>";
                   echo "<td class='text-right'>".$CI->currency($res2->tax_amt)."</td>";
                   echo "<td class='text-right'>".$discount."</td>";
                   echo "<td class='text-right'>".$CI->currency($discount_amt)."</td>";
-                  echo "<td class='text-right'>".$CI->currency(number_format($res2->unit_total_cost,2,'.',''))."</td>";
-                  echo "<td class='text-right'>".$CI->currency(number_format($res2->total_cost,2,'.',''))."</td>";
+                  echo "<td class='text-right'>".$CI->currency($res2->unit_total_cost)."</td>";
+                  echo "<td class='text-right'>".$CI->currency($res2->total_cost)."</td>";
                   echo "</tr>";  
-                  $tot_qty +=$res2->sales_qty;
-                  $tot_sales_price +=$res2->price_per_unit;
+                  $tot_qty +=$res2->purchase_qty;
+                  $tot_purchase_price +=$res2->price_per_unit;
                   $tot_tax_amt +=$res2->tax_amt;
                   $tot_discount_amt +=$res2->discount_amt;
+                  $tot_unit_total_cost +=$res2->unit_total_cost;
                   $tot_total_cost +=$res2->total_cost;
               }
               ?>
@@ -276,15 +264,13 @@
             </tbody>
             <tfoot class="text-right text-bold bg-gray">
               <tr>
-                <td colspan="2" class="text-center">Total</td>
-                <td><?= $CI->currency(number_format($tot_sales_price,2,'.',''));?></td>
+                <td colspan="3" class="text-center"><?= $this->lang->line('total'); ?></td>
                 <td class="text-left"><?=$tot_qty;?></td>
                 <td>-</td>
-                <td>-</td>
-                <td><?= $CI->currency(number_format($tot_tax_amt,2,'.',''));?></td>
+                <td><?=$CI->currency($tot_tax_amt);?></td>
                 <td>-</td>
                 <td><?= $CI->currency(number_format($tot_discount_amt,2,'.','')) ;?></td>
-                <td>-</td>
+                <td><?= $CI->currency(number_format($tot_unit_total_cost,2,'.','')) ;?></td>
                 <td><?= $CI->currency(number_format($tot_total_cost,2,'.','')) ;?></td>
               </tr>
             </tfoot>
@@ -309,9 +295,9 @@
           <div class="row">
               <div class="col-md-12">
                  <div class="form-group">
-                    <label for="sales_note" class="col-sm-4 control-label" style="font-size: 17px;"><?= $this->lang->line('note'); ?></label>    
+                    <label for="purchase_note" class="col-sm-4 control-label" style="font-size: 17px;"><?= $this->lang->line('note'); ?></label>    
                     <div class="col-sm-8">
-                       <label class="control-label  " style="font-size: 17px;">: <?=$sales_note;?></label>
+                       <label class="control-label  " style="font-size: 17px;">: <?=$purchase_note;?></label>
                     </div>
                  </div>
               </div>
@@ -331,8 +317,8 @@
                        </thead>
                        <tbody>
                           <?php 
-                            if(isset($sales_id)){
-                              $q3 = $this->db->query("select * from db_tmp_salespayments where sales_id=$sales_id");
+                            if(isset($purchase_id)){
+                              $q3 = $this->db->query("select * from db_tmp_purchasepayments where purchase_id=$purchase_id");
                               if($q3->num_rows()>0){
                                 $i=1;
                                 $total_paid = 0;
@@ -342,11 +328,11 @@
                                   echo "<td>".show_date($res3->payment_date)."</td>";
                                   echo "<td>".$res3->payment_type."</td>";
                                   echo "<td>".$res3->payment_note."</td>";
-                                  echo "<td class='text-right'>".$res3->payment."</td>";
+                                  echo "<td class='text-right'>".$CI->currency($res3->payment)."</td>";
                                   echo "</tr>";
                                   $total_paid +=$res3->payment;
                                 }
-                                echo "<tr class='text-right text-bold'><td colspan='4' >Total</td><td>".number_format($total_paid,2,'.','')."</td></tr>";
+                                echo "<tr class='text-right text-bold'><td colspan='4' >Total</td><td>".$CI->currency(number_format($total_paid,2,'.',''))."</td></tr>";
                               }
                               else{
                                 echo "<tr><td colspan='5' class='text-center text-bold'>No Previous Payments Found!!</td></tr>";
@@ -373,31 +359,31 @@
                        <tr>
                           <th class="text-right" style="font-size: 17px;"><?= $this->lang->line('subtotal'); ?></th>
                           <th class="text-right" style="padding-left:10%;font-size: 17px;">
-                             <h4><b id="subtotal_amt" name="subtotal_amt"><?=$subtotal;?></b></h4>
+                             <h4><b id="subtotal_amt" name="subtotal_amt"><?=$CI->currency($subtotal);?></b></h4>
                           </th>
                        </tr>
                        <tr>
                           <th class="text-right" style="font-size: 17px;"><?= $this->lang->line('other_charges'); ?></th>
                           <th class="text-right" style="padding-left:10%;font-size: 17px;">
-                             <h4><b id="other_charges_amt" name="other_charges_amt"><?=$other_charges_amt;?></b></h4>
+                             <h4><b id="other_charges_amt" name="other_charges_amt"><?=$CI->currency($other_charges_amt);?></b></h4>
                           </th>
                        </tr>
                        <tr>
                           <th class="text-right" style="font-size: 17px;"><?= $this->lang->line('discount_on_all'); ?></th>
                           <th class="text-right" style="padding-left:10%;font-size: 17px;">
-                             <h4><b id="discount_to_all_amt" name="discount_to_all_amt"><?=$tot_discount_to_all_amt;?></b></h4>
+                             <h4><b id="discount_to_all_amt" name="discount_to_all_amt"><?=$CI->currency($tot_discount_to_all_amt);?></b></h4>
                           </th>
                        </tr>
                        <tr>
                           <th class="text-right" style="font-size: 17px;"><?= $this->lang->line('round_off'); ?></th>
                           <th class="text-right" style="padding-left:10%;font-size: 17px;">
-                             <h4><b id="round_off_amt" name="tot_round_off_amt"><?=$round_off;?></b></h4>
+                             <h4><b id="round_off_amt" name="tot_round_off_amt"><?=$CI->currency($round_off);?></b></h4>
                           </th>
                        </tr>
                        <tr>
                           <th class="text-right" style="font-size: 17px;"><?= $this->lang->line('grand_total'); ?></th>
                           <th class="text-right" style="padding-left:10%;font-size: 17px;">
-                             <h4><b id="total_amt" name="total_amt"><?=$grand_total;?></b></h4>
+                             <h4><b id="total_amt" name="total_amt"><?=$CI->currency($grand_total);?></b></h4>
                           </th>
                        </tr>
                     </table>
@@ -413,9 +399,7 @@
       <!-- this row will not appear when printing -->
       <div class="row no-print">
         <div class="col-xs-12">
-
-          <input type="hidden" value="<?php echo isset($sales_id) ? $sales_id : 0?>" id="tmp_sale_id"/>
-          
+          <input type="hidden" value="<?php echo isset($purchase_id) ? $purchase_id : 0?>" id="tmp_pur_id"/>
           <?php  if($approved_request == 0 && ($this->session->userdata('inv_userid') == 1)){  ?>
 
               <a href="#" class="btn btn-success" id="approved">
@@ -427,8 +411,8 @@
               </a>
 
            <?php }  ?>
+       
           
-
           
         </div>
       </div>
@@ -451,27 +435,25 @@
 <?php include"comman/code_js_sound.php"; ?>
 <!-- TABLES CODE -->
 <?php include"comman/code_js_form.php"; ?>
-
-
 <script type="text/javascript">
-         <?php if(isset($sales_id)){ ?> 
+         <?php if(isset($purchase_id)){ ?> 
              $(document).ready(function(){
 
                  $('#approved').click(function (e) {
                   e.preventDefault();
                   var base_url='<?= base_url();?>';
-                  var sales_id='<?= $sales_id;?>';
+                  var purchase_id='<?= $purchase_id;?>';
                   $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
                   $("#approved").attr('disabled',true);  //Enable Save or Update button
 
 
-                    $.post(base_url+"sales/request_invoice_approved/"+sales_id,{},function(result){
+                    $.post(base_url+"purchase/request_invoice_approved/"+purchase_id,{},function(result){
 
                     result=result.split("<<<###>>>");
                     if(result[0]=="success")
                     {
 
-                       location.href=base_url+"sales";
+                       location.href=base_url+"purchase";
 
                     }
                     else if(result[0]=="failed")
@@ -490,18 +472,18 @@
                  $('#rejected').click(function (e) {
                   e.preventDefault();
                   var base_url='<?= base_url();?>';
-                  var sales_id='<?= $sales_id;?>';
+                  var purchase_id='<?= $purchase_id;?>';
                   $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
                   $("#rejected").attr('disabled',true);  //Enable Save or Update button
 
 
-                    $.post(base_url+"sales/request_invoice_reject/"+sales_id,{},function(result){
+                    $.post(base_url+"purchase/request_invoice_reject/"+purchase_id,{},function(result){
 
                     result=result.split("<<<###>>>");
                     if(result[0]=="success")
                     {
 
-                       location.href=base_url+"sales";
+                       location.href=base_url+"purchase";
 
                     }
                     else if(result[0]=="failed")
@@ -521,12 +503,8 @@
                  
              });
          <?php }?>
-
-  function print_invoice(id){
-  window.open("<?= base_url();?>pos/print_invoice_pos/"+id, "_blank", "scrollbars=1,resizable=1,height=500,width=500");
-} 
-</script>
+       </script>
 <!-- Make sidebar menu hughlighter/selector -->
-<script>$(".sales-list-active-li").addClass("active");</script>
+<script>$(".purchase-list-active-li").addClass("active");</script>
 </body>
 </html>
