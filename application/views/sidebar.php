@@ -171,7 +171,22 @@
     <?php if($CI->permissions('sales_add')  || $CI->permissions('sales_view') || $CI->permissions('sales_return_view') || $CI->permissions('sales_return_add')) { ?>
 		<li class="pos-active-li sales-list-active-li sales-active-li sales-return-active-li sales-return-list-active-li treeview">
           <a href="#">
-            <i class=" fa fa-shopping-cart text-aqua"></i> <span><?= $this->lang->line('sales'); ?></span>
+            <i class=" fa fa-shopping-cart text-aqua"></i> <span><?= $this->lang->line('sales'); ?>
+              
+              <?php 
+
+              if($this->session->userdata('inv_userid') == 1){
+                $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=0")->row()->sCount;
+                if($sCount > 0){
+                  echo "<span class='fa fa-check text-red'></span>";
+                }else{
+                  
+                }
+              }
+
+            ?>
+
+            </span>
             <span class="pull-right-container">
               <i class="fa fa-angle-left pull-right"></i>
             </span>
@@ -184,7 +199,24 @@
         <?php } ?>
         
         <?php if($CI->permissions('sales_view')) { ?>
-        <li class="sales-list-active-li"><a href="<?php echo $base_url; ?>sales"><i class="fa fa-list "></i> <span><?= $this->lang->line('sales_list'); ?></span></a></li>
+        <li class="sales-list-active-li">
+          <a href="<?php echo $base_url; ?>sales"><i class="fa fa-list "></i> 
+            <span>
+          <?= $this->lang->line('sales_list'); ?>
+          <?php 
+
+              if($this->session->userdata('inv_userid') == 1){
+                $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=0")->row()->sCount;
+                if($sCount > 0){
+                  echo "<span class='label label-danger'>".$sCount."</span>";
+                }else{
+                  
+                }
+              }
+
+            ?>
+          </span></a>
+        </li>
         <?php } ?>
 
         <?php if($CI->permissions('sales_return_add')) { ?>

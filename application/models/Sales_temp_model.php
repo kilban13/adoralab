@@ -1,11 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Sales_model extends CI_Model {
+class Sales_temp_model extends CI_Model {
 
 	//Datatable start
-	var $table = 'db_sales as a';
-	var $column_order = array( 'a.return_bit','a.id','a.sales_date','a.sales_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.customer_name','a.paid_amount','a.sales_status','a.pos'); //set column field database for datatable orderable
+	var $table = 'db_tmp_sales as a';
+	var $column_order = array( 'a.return_bit','a.id','a.sales_date','a.sales_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.customer_name','a.paid_amount','a.sales_status','a.pos','a.approved_request'); //set column field database for datatable orderable
 	var $column_search = array('sales_due','a.return_bit','a.id','a.sales_date','a.sales_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.customer_name','a.paid_amount','a.sales_status','a.pos'); //set column field database for datatable searchable 
 	var $order = array('a.id' => 'desc'); // default order  
 
@@ -98,7 +98,7 @@ class Sales_model extends CI_Model {
 	public function verify_save_and_update(){
 		//Filtering XSS and html escape from user inputs 
 		extract($this->xss_html_filter(array_merge($this->data,$_POST,$_GET)));
-		//echo "<pre>";print_r($this->xss_html_filter(array_merge($this->data,$_POST,$_GET)));exit();
+		// echo "<pre>";print_r($this->xss_html_filter(array_merge($this->data,$_POST,$_GET)));exit();
 		
 		$this->db->trans_begin();
 		$sales_date=date('Y-m-d',strtotime($sales_date));
@@ -116,10 +116,10 @@ class Sales_model extends CI_Model {
 			$q5=$this->db->query($qs5);
 			$sales_init=$q5->row()->sales_init;
 
-			$this->db->query("ALTER TABLE db_sales AUTO_INCREMENT = 1");
-			$q4=$this->db->query("select coalesce(max(id),0)+1 as maxid from db_sales");
+			$this->db->query("ALTER TABLE db_tmp_sales AUTO_INCREMENT = 1");
+			$q4=$this->db->query("select coalesce(max(id),0)+1 as maxid from db_tmp_sales");
 			$maxid=$q4->row()->maxid;
-			$sales_code=$sales_init.str_pad($maxid, 4, '0', STR_PAD_LEFT);
+			$sales_code='TMP_'.$sales_init.str_pad($maxid, 4, '0', STR_PAD_LEFT);
 
 		    $sales_entry = array(
 		    				'sales_code' 				=> $sales_code, 
@@ -150,7 +150,8 @@ class Sales_model extends CI_Model {
 		    				'status' 					=> 1,
 		    			);
 
-			$q1 = $this->db->insert('db_sales', $sales_entry);
+			$q1 = $this->db->insert('db_tmp_sales', $sales_entry);
+
 			$sales_id = $this->db->insert_id();
 		}
 		else if($command=='update'){	
@@ -175,9 +176,9 @@ class Sales_model extends CI_Model {
 		    				'sales_note' 			=> $sales_note,
 		    			);
 					
-			$q1 = $this->db->where('id',$sales_id)->update('db_sales', $sales_entry);
+			$q1 = $this->db->where('id',$sales_id)->update('db_tmp_sales', $sales_entry);
 
-			$q11=$this->db->query("delete from db_salesitems where sales_id='$sales_id'");
+			$q11=$this->db->query("delete from db_temp_salesitems where sales_id='$sales_id'");
 			if(!$q11){
 				return "failed";
 			}
@@ -244,14 +245,14 @@ class Sales_model extends CI_Model {
 
 		    			);
 				
-				$q2 = $this->db->insert('db_salesitems', $salesitems_entry);
+				$q2 = $this->db->insert('db_tmp_salesitems', $salesitems_entry);
 				
 				//UPDATE itemS QUANTITY IN itemS TABLE
-				$this->load->model('pos_model');				
-				$q6=$this->pos_model->update_items_quantity($item_id);
-				if(!$q6){
-					return "failed";
-				}
+				// $this->load->model('pos_model');				
+				// $q6=$this->pos_model->update_items_quantity($item_id);
+				// if(!$q6){
+				// 	return "failed";
+				// }
 				
 			}
 		
@@ -273,29 +274,11 @@ class Sales_model extends CI_Model {
     				'status' 			=> 1,
 				);
 
-			$q3 = $this->db->insert('db_salespayments', $salespayments_entry);
+			$q3 = $this->db->insert('db_tmp_salespayments', $salespayments_entry);
 			if($q3!=1){
 				return "failed";
 			}
-			/*$salespayment_id=$this->db->insert_id();
-			$customer_payment = array(
-	    								'salespayment_id' 	=> $salespayment_id,
-	    								'customer_id' 		=> $customer_id,
-	    								'payment_date' 		=> date("Y-m-d",strtotime($sales_date)),
-	    								'payment_type' 		=> $payment_type,
-	    								'payment' 			=> $amount,
-	    								'payment_note' 		=> $payment_note,
-	    								'created_date' 		=> $CUR_DATE,
-					    				'created_time' 		=> $CUR_TIME,
-					    				'created_by' 		=> $CUR_USERNAME,
-					    				'system_ip' 		=> $SYSTEM_IP,
-					    				'system_name' 		=> $SYSTEM_NAME,
-					    				'status' 			=> 1,
-	    							);
-	    	$q1=$this->db->insert("db_customer_payments",$customer_payment);
-	    	if(!$q1){
-	    		return "failed";
-	    	}*/
+
 
 		}
 		
@@ -307,190 +290,24 @@ class Sales_model extends CI_Model {
 		}
 		
 		
-		$sms_info='';
-		if(isset($send_sms) && $customer_id!=1){
-			if(send_sms_using_template($sales_id,1)==true){
-				$sms_info = 'SMS Has been Sent!';
-			}else{
-				$sms_info = 'Failed to Send SMS';
-			}
-		}
+		 $sms_info='';
+		// if(isset($send_sms) && $customer_id!=1){
+		// 	if(send_sms_using_template($sales_id,1)==true){
+		// 		$sms_info = 'SMS Has been Sent!';
+		// 	}else{
+		// 		$sms_info = 'Failed to Send SMS';
+		// 	}
+		// }
 		$this->db->trans_commit();
-		$this->session->set_flashdata('success', 'Success!! Record Saved Successfully! '.$sms_info);
+		if($this->session->userdata('inv_userid') !== 1){
+			$this->session->set_flashdata('success', 'Your request is sent for approval! '.$sms_info);
+		}else{
+			$this->session->set_flashdata('success', 'Success!! Record Saved Successfully! '.$sms_info);
+		}
+		
 		return "success<<<###>>>$sales_id";
 		
 	}//verify_save_and_update() function end
-	// Temp reject
-	public function Temp_verify_reject($tmp_sale_id){
-		$updateTempStatus=$this->db->query("update db_tmp_sales set 
-							approved_request=2
-							where id=$tmp_sale_id");
-		$this->session->set_flashdata('success', 'Success!! Record Rjected Successfully!');
-		return "success<<<###>>>$sales_id";
-	}
-	//Temp_verify_save_to_main_sale_
-	public function Temp_verify_save_to_main_sale($tmp_sale_id){
-		extract($this->xss_html_filter(array_merge($this->data,$_POST,$_GET)));
-		$this->db->trans_begin();
-		// $sales_date=date('Y-m-d',strtotime($sales_date));
-		$query=$this->db->query("select * from db_tmp_sales where upper(id)=upper('$tmp_sale_id')");
-		if($query->num_rows()==0){
-			show_404();exit;
-		}
-
-		$query=$query->row();
-
-		$customer_id = $query->customer_id;
-
-	    $qs5="select sales_init from db_company";
-		$q5=$this->db->query($qs5);
-		$sales_init=$q5->row()->sales_init;
-
-		$this->db->query("ALTER TABLE db_sales AUTO_INCREMENT = 1");
-		$q4=$this->db->query("select coalesce(max(id),0)+1 as maxid from db_sales");
-		$maxid=$q4->row()->maxid;
-		$sales_code=$sales_init.str_pad($maxid, 4, '0', STR_PAD_LEFT);
-
-	    $sales_entry = array(
-	    				'sales_code' 				=> $sales_code, 
-	    				'reference_no' 				=> $query->reference_no."_".$query->sales_code, 
-	    				'sales_date' 				=> $query->sales_date,
-	    				'sales_status' 				=> $query->sales_status,
-	    				'customer_id' 				=> $query->customer_id,
-	    				/*'warehouse_id' 				=> $warehouse_id,*/
-	    				/*Other Charges*/
-	    				'other_charges_input' 		=> $query->other_charges_input,
-	    				'other_charges_tax_id' 		=> $query->other_charges_tax_id,
-	    				'other_charges_amt' 		=> $query->other_charges_amt,
-	    				/*Discount*/
-	    				'discount_to_all_input' 	=> $query->discount_to_all_input,
-	    				'discount_to_all_type' 		=> $query->discount_to_all_type,
-	    				'tot_discount_to_all_amt' 	=> $query->tot_discount_to_all_amt,
-	    				/*Subtotal & Total */
-	    				'subtotal' 					=> $query->subtotal,
-	    				'round_off' 				=> $query->round_off,
-	    				'grand_total' 				=> $query->grand_total,
-	    				'sales_note' 				=> $query->sales_note,
-	    				/*System Info*/
-	    				'created_date' 				=> $query->created_date,
-	    				'created_time' 				=> $query->created_time,
-	    				'created_by' 				=> $query->created_by,
-	    				'system_ip' 				=> $query->system_ip,
-	    				'system_name' 				=> $query->system_name,
-	    				'status' 					=> 1,
-	    			);
-
-			$q1 = $this->db->insert('db_sales', $sales_entry);
-
-			$sales_id = $this->db->insert_id();
-						
-
-		//end
-
-		//Get item data from db_tmp_salesitem and insert
-
-		$items=$this->db->select("*")->where("sales_id=$tmp_sale_id")->get("db_tmp_salesitems");
-
-
-      	if($items->num_rows()>0){
-      		foreach ($items->result() as $item) {
-
-      			$salesitems_entry = array(
-		    				'sales_id' 			=> $sales_id, 
-		    				'sales_status'		=> $item->sales_status, 
-		    				'item_id' 			=> $item->item_id, 
-		    				'description' 		=> $item->description, 
-		    				'sales_qty' 		=> $item->sales_qty,
-		    				'price_per_unit' 	=> $item->price_per_unit,
-		    				'tax_type' 			=> $item->tax_type,
-		    				'tax_id' 			=> $item->tax_id,
-		    				'tax_amt' 			=> $item->tax_amt,
-		    				'discount_input' 	=> $item->discount_input,
-		    				'discount_amt' 		=> $item->discount_amt,
-		    				'discount_type' 	=> $item->discount_type,
-		    				'unit_total_cost' 	=> $item->unit_total_cost,
-		    				'total_cost' 		=> $item->total_cost,
-		    				'status'	 		=> 1,
-
-		    			);
-				
-				$q2 = $this->db->insert('db_salesitems', $salesitems_entry);
-				
-				//UPDATE itemS QUANTITY IN itemS TABLE
-				$this->load->model('pos_model');				
-				$q6=$this->pos_model->update_items_quantity($item->item_id);
-
-
-				if(!$q6){
-					return "failed";
-				}
-				
-      		}
-      	}
-
-      
-      	$payments=$this->db->select("*")->where("sales_id=$tmp_sale_id")->get("db_tmp_salespayments");
-
-
-      	if($payments->num_rows()>0){
-      		foreach ($payments->result() as $amount) {
-				
-					$salespayments_entry = array(
-							'sales_id' 		=> $sales_id, 
-							'payment_date'		=> $amount->payment_date,
-							'payment_type' 		=> $amount->payment_type,
-							'payment' 			=> $amount->payment,
-							'payment_note' 		=> $amount->payment_note,
-							'created_date' 		=> $amount->created_date,
-		    				'created_time' 		=> $amount->created_time,
-		    				'created_by' 		=> $amount->created_by,
-		    				'system_ip' 		=> $amount->system_ip,
-		    				'system_name' 		=> $amount->system_name,
-		    				'status' 			=> 1,
-						);
-
-					$q3 = $this->db->insert('db_salespayments', $salespayments_entry);
-
-					if($q3!=1){
-						return "failed";
-					}
-
-      		}
-      	}
-		
-		
-		
-		$q10=$this->update_sales_payment_status($sales_id,$customer_id);
-
-		if($q10!=1){
-			return "failed";
-		}
-		
-		$updateTempStatus=$this->db->query("update db_tmp_sales set 
-							approved_request=1
-							where id=$tmp_sale_id");
-
-		 // $query1="update db_sales set status='$status' where id=$id";
-   //      if ($this->db->simple_query($query1)){
-   //          echo "success";
-   //      }
-   //      else{
-   //          echo "failed";
-   //      }
-	
-		$sms_info='';
-		if(isset($send_sms) && $customer_id!=1){
-			if(send_sms_using_template($sales_id,1)==true){
-				$sms_info = 'SMS Has been Sent!';
-			}else{
-				$sms_info = 'Failed to Send SMS';
-			}
-		}
-		$this->db->trans_commit();
-		$this->session->set_flashdata('success', 'Success!! Record Approved Successfully! '.$sms_info);
-		return "success<<<###>>>$sales_id";
-		
-	}//Temp_verify_save_to_main_sale_and_update() function end
 
 	function update_sales_payment_status_by_sales_id($sales_id,$customer_id){
 		//if(!empty($sales_id)){
@@ -498,11 +315,11 @@ class Sales_model extends CI_Model {
 			if(!$q12){
 				return false;
 			}*/
-			$q8=$this->db->query("select COALESCE(SUM(payment),0) as payment from db_salespayments where sales_id='$sales_id'");
+			$q8=$this->db->query("select COALESCE(SUM(payment),0) as payment from db_tmp_salespayments where sales_id='$sales_id'");
 		$sum_of_payments=$q8->row()->payment;
 		
 
-		$payble_total=$this->db->query("select coalesce(sum(grand_total),0) as total from db_sales where id='$sales_id'")->row()->total;
+		$payble_total=$this->db->query("select coalesce(sum(grand_total),0) as total from db_tmp_sales where id='$sales_id'")->row()->total;
 		
 		//$pending_amt=$payble_total-$sum_of_payments;
 
@@ -524,20 +341,20 @@ class Sales_model extends CI_Model {
 		//Condition if sales record not exist
 		//Sometime called after sales redord delete
 
-		$q7=$this->db->query("update db_sales set 
+		$q7=$this->db->query("update db_tmp_sales set 
 							payment_status='$payment_status',
 							paid_amount=$sum_of_payments 
 							where id='$sales_id'");
 
 
-		$q12 = $this->db->query("update db_customers set sales_due=(select COALESCE(SUM(grand_total),0)-COALESCE(SUM(paid_amount),0) from db_sales where customer_id='$customer_id' and sales_status='Final') where id=$customer_id");
-			if(!$q12){
-				return false;
-			}
-	//	}
-		if(!record_customer_payment($customer_id)){
-			return false;
-		}
+	// 	$q12 = $this->db->query("update db_customers set sales_due=(select COALESCE(SUM(grand_total),0)-COALESCE(SUM(paid_amount),0) from db_sales where customer_id='$customer_id' and sales_status='Final') where id=$customer_id");
+	// 		if(!$q12){
+	// 			return false;
+	// 		}
+	// //	}
+	// 	if(!record_customer_payment($customer_id)){
+	// 		return false;
+	// 	}
 		return true;
 		
 	}

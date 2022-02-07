@@ -6,6 +6,7 @@ class Sales extends MY_Controller {
 		parent::__construct();
 		$this->load_global();
 		$this->load->model('sales_model','sales');
+		$this->load->model('sales_temp_model','sales_temp');
 		$this->load->helper('sms_template_helper');
 	}
 
@@ -25,7 +26,12 @@ class Sales extends MY_Controller {
 		$this->permission_check('sales_add');
 		$data=$this->data;
 		$data['page_title']=$this->lang->line('sales');
-		$this->load->view('sales',$data);
+		
+		if($this->session->userdata('inv_userid') == 1){
+			$this->load->view('sales',$data);
+		}else{
+			$this->load->view('sales_temp',$data);
+		}
 	}
 	
 
@@ -34,8 +40,17 @@ class Sales extends MY_Controller {
 		$this->form_validation->set_rules('customer_id', 'Customer Name', 'trim|required');
 		
 		if ($this->form_validation->run() == TRUE) {
-	    	$result = $this->sales->verify_save_and_update();
-	    	echo $result;
+
+			if($this->session->userdata('inv_userid') != 1){
+				$result = $this->sales_temp->verify_save_and_update();
+	    		echo $result;
+			}else{
+				$result = $this->sales->verify_save_and_update();
+	    		echo $result;
+			}
+				
+
+
 		} else {
 			echo "Please Fill Compulsory(* marked) Fields.";
 		}
@@ -49,8 +64,109 @@ class Sales extends MY_Controller {
 		$data['page_title']=$this->lang->line('sales');
 		$this->load->view('sales', $data);
 	}
-	
 
+	public function request_invoice($id){
+
+		$data=$this->data;
+		$data=array_merge($data,array('sales_id'=>$id));
+		$data['page_title']=$this->lang->line('sales_invoice');
+		$this->load->view('sales-invoice-temp',$data);
+	}
+	public function request_invoice_approved($id){
+
+		if($this->session->userdata('inv_userid') == 1){
+			$result = $this->sales->Temp_verify_save_to_main_sale($id);
+			echo $result;
+		}else{
+			show_404();exit;
+		}
+		
+	}
+	public function request_invoice_reject($id){
+		if($this->session->userdata('inv_userid') == 1){
+			$result = $this->sales->Temp_verify_reject($id);
+			echo $result;
+		}else{
+			show_404();exit;
+		}
+	}
+	
+	public function temp_ajax_list(){
+
+		$list = $this->sales_temp->get_datatables();
+		
+		$data = array();
+		$no = $_POST['start'];
+		foreach ($list as $sales) {
+			$no++;
+			$row = array();
+			$strS='';
+			if($sales->approved_request == 0){
+
+	          $strS= "<span class='label label-warning' style='cursor:pointer'>Pending</span>";
+			}
+	        if($sales->approved_request==1){
+	          $strS="<span class='label label-success' style='cursor:pointer'> Approved </span>";
+	        }
+	        if($sales->approved_request==2){
+	          $strS="<span class='label label-danger' style='cursor:pointer'> Rejected </span>";
+	        }
+
+			$row[] = $strS;
+			$row[] = show_date($sales->sales_date);
+
+			$info = (!empty($sales->return_bit)) ? "\n<span class='label label-danger' style='cursor:pointer'><i class='fa fa-fw fa-undo'></i>Return Raised</span>" : '';
+
+			$row[] = $sales->sales_code.$info;
+			$row[] = $sales->sales_status;
+			$row[] = $sales->reference_no;
+			$row[] = $sales->customer_name;
+			//$row[] = $sales->warehouse_name;
+			$row[] = app_number_format($sales->grand_total);
+			$row[] = app_number_format($sales->paid_amount);
+			$row[] = app_number_format($sales->sales_due);
+					$str='';
+					if($sales->payment_status=='Unpaid')
+			          $str= "<span class='label label-danger' style='cursor:pointer'>Unpaid </span>";
+			        if($sales->payment_status=='Partial')
+			          $str="<span class='label label-warning' style='cursor:pointer'> Partial </span>";
+			        if($sales->payment_status=='Paid')
+			          $str="<span class='label label-success' style='cursor:pointer'> Paid </span>";
+
+			$row[] = $str;
+			$row[] = ucfirst($sales->created_by);
+
+					 // if($sales->pos ==1):
+					 // 	$str1='pos/edit/';
+					 // else:
+					 // 	$str1='sales/update/';
+					 // endif;
+
+                    // if($this->session->userdata('inv_userid') == 1)
+
+
+					$str2 = '<div class="btn-group" title="View Account">
+										
+										';
+											$str2.='
+												<a title="View Invoice" class="btn btn-success btn-sm" href="sales/request_invoice/'.$sales->id.'" >
+													View
+												</a>
+											</div>';
+									
+			$row[] = $str2;
+
+			$data[] = $row;
+		}
+		$output = array(
+						"draw" => $_POST['draw'],
+						"recordsTotal" => $this->sales_temp->count_all(),
+						"recordsFiltered" => $this->sales_temp->count_filtered(),
+						"data" => $data,
+				);
+		//output to json format
+		echo json_encode($output);
+	}
 	public function ajax_list()
 	{
 		$list = $this->sales->get_datatables();
