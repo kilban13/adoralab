@@ -178,7 +178,7 @@
               if($this->session->userdata('inv_userid') == 1){
                 $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=0")->row()->sCount;
                 if($sCount > 0){
-                  echo "<span class='fa fa-check text-red'></span>";
+                  echo "<blink><span class='fa fa-warning text-red'></span></blink>";
                 }else{
                   
                 }
