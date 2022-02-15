@@ -181,6 +181,7 @@ class Sales_model extends CI_Model {
 			if(!$q11){
 				return "failed";
 			}
+			$q11=$this->db->query("delete from tbl_giftitems where sales_id='$sales_id'");
 		}
 		//end
 
@@ -256,6 +257,40 @@ class Sales_model extends CI_Model {
 			}
 		
 		}//for end
+		// insertion -----------for gift-----------items //
+		// insertion -----------for gift-----------items //
+		// insertion -----------for gift-----------items //
+		for($i=1;$i<=$rowcount2;$i++){
+		
+			if(isset($_REQUEST['tr2_item_id_'.$i]) && !empty($_REQUEST['tr2_item_id_'.$i])){
+
+				$item_id 			=$this->xss_html_filter(trim($_REQUEST['tr2_item_id_'.$i]));
+				$sales_qty			=$this->xss_html_filter(trim($_REQUEST['td2_data_'.$i.'_3']));
+				
+				$salesgift_entry = array(
+		    				'sales_id' 			=> $sales_id, 
+		    				'sales_status' 		=> $sales_status,
+		    				'item_id' 			=> $item_id, 
+		    				'status' 			=> 2,
+		    				'sales_qty' 		=> $sales_qty
+		    			);
+
+				// print_r($salesgift_entry );
+				// die('hello');
+				
+				$q2 = $this->db->insert('tbl_giftitems', $salesgift_entry);
+				//UPDATE itemS QUANTITY IN itemS TABLE
+				$this->load->model('pos_model');				
+				$q6=$this->pos_model->update_items_quantity_from_gift($item_id,$sales_id);
+				if(!$q6){
+					return "failed";
+				}
+			}
+		
+		}//for end
+		//  ----------------------- //
+		//  ----------------------- //
+		//  ----------------------- //
 
 		if($amount=='' || $amount==0){$amount=null;}
 		if($amount>0 && !empty($payment_type)){
@@ -459,7 +494,31 @@ class Sales_model extends CI_Model {
       	}
 		
 		
-		
+		//insert tbl_gifttable data from tmp_gifttable 
+
+		$items2=$this->db->select("*")->where("sales_id=$tmp_sale_id")->get("tmp_giftitems");
+
+      	if($items2->num_rows()>0){
+      		foreach ($items2->result() as $item) {
+
+      			$salesitems_entry = array(
+		    				'sales_id' 			=> $sales_id, 
+		    				'sales_status' 		=> $item->sales_status,
+		    				'item_id' 			=> $item->item_id, 
+		    				'sales_qty' 		=> $item->sales_qty
+
+		    			);
+				
+				$q2 = $this->db->insert('tbl_giftitems', $salesitems_entry);
+				
+				//UPDATE itemS QUANTITY IN itemS TABLE
+				$this->load->model('pos_model');				
+				$q6=$this->pos_model->update_items_quantity($item->item_id);
+				if(!$q6){
+					return "failed";
+				}
+      		}
+      	}
 		$q10=$this->update_sales_payment_status($sales_id,$customer_id);
 
 		if($q10!=1){
@@ -469,7 +528,14 @@ class Sales_model extends CI_Model {
 		$updateTempStatus=$this->db->query("update db_tmp_sales set 
 							approved_request=1
 							where id=$tmp_sale_id");
-
+		// $updateTempStatus2=$this->db->query("update tbl_giftitems set 
+		// 					status=2
+		// 					where sales_id=$sales_id");
+		// $this->load->model('pos_model');				
+		// $q6=$this->pos_model->update_items_quantity_from_gift($item_id,$sales_id);
+		// if(!$q6){
+		// 	return "failed";
+		// }
 		 // $query1="update db_sales set status='$status' where id=$id";
    //      if ($this->db->simple_query($query1)){
    //          echo "success";
@@ -731,6 +797,120 @@ class Sales_model extends CI_Model {
 
 		$this->return_row_with_data($rowcount,$info);
 	}
+	public function get_items_info2($rowcount,$item_id){
+		$q1=$this->db->select('*')->from('db_items')->where("id=$item_id")->get();
+		$q3=$this->db->query("select * from db_tax where id=".$q1->row()->tax_id)->row();
+
+		$stock	=	$q1->row()->stock;
+
+		$qty = ($stock>1) ? 1 : $stock;
+	      
+		$info['item_id'] = $q1->row()->id;
+		$info['item_name'] = $q1->row()->item_name;
+		$info['description'] = '';//$q1->row()->description;
+		$info['item_sales_qty'] = $qty;
+		$info['item_available_qty'] = $stock;
+		$info['item_sales_price'] = $q1->row()->sales_price;
+		//$info['item_tax_id'] = $q1->row()->tax_id;
+		$info['item_tax_name'] = $q3->tax_name;
+		$info['item_price'] = $q1->row()->price;
+		$info['item_tax_id'] = $q3->id;
+		$info['item_tax'] = $q3->tax;
+		$info['item_tax_type'] = $q1->row()->tax_type;
+		$info['item_discount'] = 0;
+		$info['item_discount_type'] = 'Percentage';
+		$info['item_discount_input'] = 0;
+
+		$info['item_tax_amt'] = ($q1->row()->tax_type=='Inclusive') ? calculate_inclusive($q1->row()->sales_price,$q3->tax) :calculate_exclusive($q1->row()->sales_price,$q3->tax);
+
+		$this->return_row_with_data2($rowcount,$info);
+	}
+
+	public function return_row_with_data2($rowcount,$info){
+		extract($info);
+		?>
+            <tr id="row2_<?=$rowcount;?>" data-row='<?=$rowcount;?>'>
+               <td id="td2_<?=$rowcount;?>_1">
+                  <label class='form-control' style='height:auto;' data-toggle="tooltip" title='Item ?' >
+                  <a id="td2_data_<?=$rowcount;?>_1" href="javascript:void(0)" title=""><?=$item_name;?></a> 
+                  	</label>
+               </td>
+
+               <!-- description  -->
+              <!--  <td id="td_<?=$rowcount;?>_17">
+                  
+                  <textarea rows="1" type="text" style="font-weight: bold; height=34px;" id="td_data_<?=$rowcount;?>_17" name="td_data_<?=$rowcount;?>_17" class="form-control no-padding"><?=$description;?></textarea>
+               </td> -->
+
+               <!-- Qty -->
+               <td id="td2_<?=$rowcount;?>_3">
+                  <div class="input-group ">
+                     <span class="input-group-btn">
+                     <button onclick="decrement_qty2(<?=$rowcount;?>)" type="button" class="btn btn-default btn-flat"><i class="fa fa-minus text-danger"></i></button></span>
+                     <input typ="text" value="<?=$item_sales_qty;?>" class="form-control no-padding text-center" onchange="item_qty_input2(<?=$rowcount;?>)" id="td2_data_<?=$rowcount;?>_3" name="td2_data_<?=$rowcount;?>_3">
+                     <span class="input-group-btn">
+                     <button onclick="increment_qty2(<?=$rowcount;?>)" type="button" class="btn btn-default btn-flat"><i class="fa fa-plus text-success"></i></button></span>
+                  </div>
+               </td>
+               
+               <!-- Unit Cost Without Tax-->
+               <!-- <td id="td_<?=$rowcount;?>_10"><input type="text" name="td_data_<?=$rowcount;?>_10" id="td_data_<?=$rowcount;?>_10" class="form-control text-right no-padding only_currency text-center" onkeyup="calculate_tax(<?=$rowcount;?>)" value="<?=$item_sales_price;?>"></td> -->
+
+               <!-- Discount -->
+             <!--   <td id="td_<?=$rowcount;?>_8">
+                  <input type="text" data-toggle="tooltip" title="Click to Change" onclick="show_sales_item_modal(<?=$rowcount;?>)" name="td_data_<?=$rowcount;?>_8" id="td_data_<?=$rowcount;?>_8" class="pointer form-control text-right no-padding only_currency text-center item_discount" value="<?=$item_discount;?>" onkeyup="calculate_tax(<?=$rowcount;?>)" readonly>
+               </td> -->
+
+               <!-- Tax Amount -->
+               <!-- <td id="td_<?=$rowcount;?>_11">
+                  <input type="text" name="td_data_<?=$rowcount;?>_11" id="td_data_<?=$rowcount;?>_11" class="form-control text-right no-padding only_currency text-center" value="<?=$item_tax_amt;?>" readonly>
+               </td> -->
+
+               <!-- Tax Details -->
+               <!-- <td id="td_<?=$rowcount;?>_12">
+                  <label class='form-control ' style='width:100%;padding-left:0px;padding-right:0px;'>
+                  <a id="td_data_<?=$rowcount;?>_12" href="javascript:void(0)" data-toggle="tooltip" title='Click to Change' onclick="show_sales_item_modal(<?=$rowcount;?>)" title=""><?=$item_tax_name ;?></a>
+                  	</label>
+               </td> -->
+
+               <!-- Amount -->
+               <!-- <td id="td_<?=$rowcount;?>_9"><input type="text" name="td_data_<?=$rowcount;?>_9" id="td_data_<?=$rowcount;?>_9" class="form-control text-right no-padding only_currency text-center" style="border-color: #f39c12;" readonly value="<?=$item_amount;?>"></td> -->
+               
+               <!-- ADD button -->
+               <td id="td2_<?=$rowcount;?>_16" style="text-align: center;">
+                  <a class=" fa fa-fw fa-minus-square text-red" style="cursor: pointer;font-size: 34px;" onclick="removerow2(<?=$rowcount;?>)" title="Delete ?" name="td2_data_<?=$rowcount;?>_16" id="td2_data_<?=$rowcount;?>_16"></a>
+               </td>
+               <!-- <input type="hidden" id="td_data_<?=$rowcount;?>_4" name="td_data_<?=$rowcount;?>_4" value="<?=$item_sales_price;?>"> -->
+               <!-- <input type="hidden" id="td_data_<?=$rowcount;?>_15" name="td_data_<?=$rowcount;?>_15" value="<?=$item_tax_id;?>"> -->
+               <!-- <input type="hidden" id="td_data_<?=$rowcount;?>_5" name="td_data_<?=$rowcount;?>_5" value="<?=$item_tax_amt;?>"> -->
+               <input type="hidden" id="tr2_available_qty_<?=$rowcount;?>_13" value="<?=$item_available_qty;?>">
+               <input type="hidden" id="tr2_item_id_<?=$rowcount;?>" name="tr2_item_id_<?=$rowcount;?>" value="<?=$item_id;?>">
+               <!-- <input type="hidden" id="tr_tax_type_<?=$rowcount;?>" name="tr_tax_type_<?=$rowcount;?>" value="<?=$item_tax_type;?>"> -->
+               <!-- <input type="hidden" id="tr_tax_id_<?=$rowcount;?>" name="tr_tax_id_<?=$rowcount;?>" value="<?=$item_tax_id;?>"> -->
+               <!-- <input type="hidden" id="tr_tax_value_<?=$rowcount;?>" name="tr_tax_value_<?=$rowcount;?>" value="<?=$item_tax;?>"> -->
+               <!-- <input type="hidden" id="description_<?=$rowcount;?>" name="description_<?=$rowcount;?>" value="<?=$description;?>"> -->
+
+               <!-- <input type="hidden" id="item_discount_type_<?=$rowcount;?>" name="item_discount_type_<?=$rowcount;?>" value="<?=$item_discount_type;?>"> -->
+               <!-- <input type="hidden" id="item_discount_input_<?=$rowcount;?>" name="item_discount_input_<?=$rowcount;?>" value="<?=$item_discount_input;?>"> -->
+            </tr>
+		<?php
+
+	}
+	public function return_sales_list2($sales_id){
+		$q1=$this->db->select('*')->from('tbl_giftitems')->where("sales_id=$sales_id")->get();
+		$rowcount =1;
+		foreach ($q1->result() as $res1) {
+			$q2=$this->db->query("select * from db_items where id=".$res1->item_id);			
+			$info['item_id'] = $res1->item_id;
+			$info['item_name'] = $q2->row()->item_name;
+			$info['item_sales_qty'] = $res1->sales_qty;
+			//$info['item_tax_id'] = $res1->tax_id;
+			
+			$result = $this->return_row_with_data2($rowcount++,$info);
+		}
+		return $result;
+	}
+	
 	/* For Purchase Items List Retrieve*/
 	public function return_sales_list($sales_id){
 		$q1=$this->db->select('*')->from('db_salesitems')->where("sales_id=$sales_id")->get();

@@ -334,6 +334,7 @@ class Reports_model extends CI_Model {
 	}
 	public function show_stock_report(){
 		extract($_POST);
+		    $CI =& get_instance();
 
 		
 		$this->db->select("a.*,b.tax_name");
@@ -353,31 +354,68 @@ class Reports_model extends CI_Model {
 			foreach ($q1->result() as $res1) {
 				$tax_type = ($res1->tax_type=='Inclusive') ? 'Inc.' : 'Exc.';
 				$stock_value = $res1->sales_price * $res1->stock;
-				echo "<tr>";
-				echo "<td>".++$i."</td>";
-				echo "<td>".$res1->item_code."</td>";
-				echo "<td>".$res1->item_name."</td>";
-				echo "<td class='text-right'>".app_number_format($res1->purchase_price)."</td>";
-				echo "<td>".$res1->tax_name."[".$tax_type."]</td>";
-				echo "<td class='text-right'>".app_number_format($res1->sales_price)."</td>";
-				echo "<td>".$res1->stock."</td>";
-				echo "<td class='text-right'>".$stock_value."</td>";
-				echo "</tr>";
+				if($CI->permissions('don_not_show_item_unit_price_view') && ($this->session->userdata('inv_userid') !=1) ){
+
+					echo "<tr>";
+					echo "<td>".++$i."</td>";
+					echo "<td>".$res1->item_code."</td>";
+					echo "<td>".$res1->item_name."</td>";
+					echo "<td>".$res1->tax_name."[".$tax_type."]</td>";
+					echo "<td class='text-right'>".app_number_format($res1->sales_price)."</td>";
+					echo "<td>".$res1->stock."</td>";
+					echo "<td class='text-right'>".$stock_value."</td>";
+					echo "</tr>";
+
+				}else{
+					
+					echo "<tr>";
+					echo "<td>".++$i."</td>";
+					echo "<td>".$res1->item_code."</td>";
+					echo "<td>".$res1->item_name."</td>";
+					echo "<td class='text-right'>".app_number_format($res1->purchase_price)."</td>";
+					echo "<td>".$res1->tax_name."[".$tax_type."]</td>";
+					echo "<td class='text-right'>".app_number_format($res1->sales_price)."</td>";
+					echo "<td>".$res1->stock."</td>";
+					echo "<td class='text-right'>".$stock_value."</td>";
+					echo "</tr>";
+					
+				}
+			
 				$tot_purchase_price+=$res1->purchase_price;
 				$tot_sales_price+=$res1->sales_price;
 				$tot_stock_value+=$stock_value;
 				$tot_stock+=$res1->stock;
 
 			}
+			if($CI->permissions('don_not_show_item_unit_price_view') && ($this->session->userdata('inv_userid') !=1) ){
 
-			echo "<tr>
-					  <td class='text-right text-bold' colspan='3'><b>Total :</b></td>
-					  <td class='text-right text-bold'>".app_number_format($tot_purchase_price)."</td>
-					  <td class='text-right text-bold'></td>
-					  <td class='text-right text-bold'>".app_number_format($tot_sales_price)."</td>
-					  <td class='text-bold'>".app_number_format($tot_stock)."</td>
-					  <td class='text-right text-bold'>".app_number_format($tot_stock_value)."</td>
-				  </tr>";
+				echo "<tr>
+				<td class='text-right text-bold' colspan='3'><b>Total :</b></td>
+				<td class='text-right text-bold'></td>
+				<td class='text-right text-bold'>".app_number_format($tot_sales_price)."</td>
+				<td class='text-bold'>".app_number_format($tot_stock)."</td>
+				<td class='text-right text-bold'>".app_number_format($tot_stock_value)."</td>
+				</tr>";
+				
+			}else{
+				echo "<tr>
+				<td class='text-right text-bold' colspan='3'><b>Total :</b></td>
+				<td class='text-right text-bold'>".app_number_format($tot_purchase_price)."</td>
+				<td class='text-right text-bold'></td>
+				<td class='text-right text-bold'>".app_number_format($tot_sales_price)."</td>
+				<td class='text-bold'>".app_number_format($tot_stock)."</td>
+				<td class='text-right text-bold'>".app_number_format($tot_stock_value)."</td>
+				</tr>";
+			}
+
+			// echo "<tr>
+			// 		  <td class='text-right text-bold' colspan='3'><b>Total :</b></td>
+			// 		  <td class='text-right text-bold'>".app_number_format($tot_purchase_price)."</td>
+			// 		  <td class='text-right text-bold'></td>
+			// 		  <td class='text-right text-bold'>".app_number_format($tot_sales_price)."</td>
+			// 		  <td class='text-bold'>".app_number_format($tot_stock)."</td>
+			// 		  <td class='text-right text-bold'>".app_number_format($tot_stock_value)."</td>
+			// 	  </tr>";
 		}
 		else{
 			echo "<tr>";

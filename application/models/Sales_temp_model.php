@@ -6,7 +6,7 @@ class Sales_temp_model extends CI_Model {
 	//Datatable start
 	var $table = 'db_tmp_sales as a';
 	var $column_order = array( 'a.return_bit','a.id','a.sales_date','a.sales_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.customer_name','a.paid_amount','a.sales_status','a.pos','a.approved_request'); //set column field database for datatable orderable
-	var $column_search = array('sales_due','a.return_bit','a.id','a.sales_date','a.sales_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.customer_name','a.paid_amount','a.sales_status','a.pos'); //set column field database for datatable searchable 
+	var $column_search = array('sales_due','a.return_bit','a.id','a.sales_date','a.sales_code','a.reference_no','a.grand_total','a.payment_status','a.created_by','b.customer_name','a.paid_amount','a.sales_status','a.pos','a.approved_request'); //set column field database for datatable searchable 
 	var $order = array('a.id' => 'desc'); // default order  
 
 	public function __construct()
@@ -25,7 +25,10 @@ class Sales_temp_model extends CI_Model {
 		//$this->db->from('db_warehouse as c');
 		$this->db->where('b.id=a.customer_id');
 		//$this->db->where('c.id=a.warehouse_id');
-
+		$request_status = $this->input->post('request_status');
+		if(!empty($request_status)){
+			$this->db->where("a.approved_request",$request_status);
+		}
 		$i = 0;
 	
 		foreach ($this->column_search as $item) // loop column 
@@ -257,6 +260,39 @@ class Sales_temp_model extends CI_Model {
 			}
 		
 		}//for end
+		// insertion -----------for gift-----------items //
+		// insertion -----------for gift-----------items //
+		// insertion -----------for gift-----------items //
+		for($i=1;$i<=$rowcount2;$i++){
+		
+			if(isset($_REQUEST['tr2_item_id_'.$i]) && !empty($_REQUEST['tr2_item_id_'.$i])){
+
+				$item_id 			=$this->xss_html_filter(trim($_REQUEST['tr2_item_id_'.$i]));
+				$sales_qty			=$this->xss_html_filter(trim($_REQUEST['td2_data_'.$i.'_3']));
+				
+				$salesgift_entry = array(
+		    				'sales_id' 			=> $sales_id, 
+		    				'sales_status' 		=> $sales_status,
+		    				'item_id' 			=> $item_id, 
+		    				'sales_qty' 		=> $sales_qty
+		    			);
+
+				// print_r($salesgift_entry );
+				// die('hello');
+				
+				$q2 = $this->db->insert('tmp_giftitems', $salesgift_entry);
+				//UPDATE itemS QUANTITY IN itemS TABLE
+				// $this->load->model('pos_model');				
+				// $q6=$this->pos_model->update_items_quantity_from_gift($item_id,$sales_id);
+				// if(!$q6){
+				// 	return "failed";
+				// }
+			}
+		
+		}//for end
+		//  ----------------------- //
+		//  ----------------------- //
+		//  ----------------------- //
 
 		if($amount=='' || $amount==0){$amount=null;}
 		if($amount>0 && !empty($payment_type)){

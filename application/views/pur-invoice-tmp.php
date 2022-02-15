@@ -136,6 +136,13 @@
               </span>
 
             <?php }  ?>
+            <?php  if($approved_request == 3){  ?>
+
+              <span href="#" class="label label-warning" >
+                  <i class="fa  fa-time"></i> Pending
+              </span>
+
+            <?php }  ?>
             <small class="pull-right">Date: <?= show_date($purchase_date); ?></small>
           </h2>
         </div>
@@ -400,7 +407,7 @@
       <div class="row no-print">
         <div class="col-xs-12">
           <input type="hidden" value="<?php echo isset($purchase_id) ? $purchase_id : 0?>" id="tmp_pur_id"/>
-          <?php  if($approved_request == 0 && ($this->session->userdata('inv_userid') == 1)){  ?>
+          <?php  if($approved_request == 3 && ($CI->permissions('purchase_approved_panel_action'))){  ?>
 
               <a href="#" class="btn btn-success" id="approved">
                   <i class="fa  fa-check"></i> Approved

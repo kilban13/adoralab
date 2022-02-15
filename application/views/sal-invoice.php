@@ -298,6 +298,8 @@
                  </div>
               </div>
            </div> 
+
+          
            <div class="row">
               <div class="col-md-12">
                  <div class="form-group">
@@ -343,7 +345,48 @@
                     </table>
                  </div>
               </div>
-           </div>           
+           </div>  
+
+            <!-- gift table-->
+           <?php 
+           $gift = $this->db->query("SELECT  a.item_id, a.sales_qty,c.item_name
+                                  FROM 
+                                  tbl_giftitems AS a,db_items AS c 
+                                  WHERE 
+                                  c.id=a.item_id  AND a.sales_id='$sales_id'");
+           if($gift->num_rows()>0){
+           ?>
+            <div class="row">
+              <div class="col-md-6">
+                 <div class="form-group">
+                    <table class="table table-hover table-bordered" style="width:100%" id=""><h4 class="box-title text-orange">Gift/Sample: </h4>
+                       <thead>
+                          <tr class="bg-orange " >
+                             <th>#</th>
+                             <th>Item Name</th>
+                             <th>Total Quantity</th>
+                          </tr>
+                       </thead>
+                       <tbody>
+                          <?php 
+                            if(isset($sales_id)){
+                                $i=1;
+                                foreach ($gift->result() as $res3) {
+                                  echo "<tr class='text-center text-bold''>";
+                                  echo "<td>".$i++."</td>";
+                                  echo "<td>".($res3->item_name)."</td>";
+                                  echo "<td>".($res3->sales_qty)."</td>";
+                                }
+                            }
+                          ?>
+                       </tbody>
+                    </table>
+                 </div>
+              </div>
+           </div> 
+            <?php } ?>
+           <!--- --->  
+
         </div>
 
         <div class="col-md-6">

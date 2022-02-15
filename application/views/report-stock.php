@@ -53,7 +53,10 @@
                                               <th style="">#</th>
                                               <th style=""><?= $this->lang->line('item_code'); ?></th>
                                               <th style=""><?= $this->lang->line('item_name'); ?></th>
-                                              <th style=""><?= $this->lang->line('unit_price'); ?>(<?= $CI->currency(); ?>)</th>
+                                              <?php if($CI->permissions('don_not_show_item_unit_price_view') &&($this->session->userdata('inv_userid') !=1)){ ?>
+                                              <?php }else{ ?>
+                                                 <th style=""><?= $this->lang->line('unit_price'); ?>(<?= $CI->currency(); ?>)</th>
+                                              <?php }?>
                                               <th style=""><?= $this->lang->line('tax'); ?></th>
                                               <th style=""><?= $this->lang->line('sales_price'); ?>(<?= $CI->currency(); ?>)</th>
                                               <th style=""><?= $this->lang->line('current_stock'); ?></th>

@@ -166,7 +166,7 @@ class Roles_model extends CI_Model {
 	}
 
 	public function set_persmissions($role_id= 0){
-		//echo "<pre>"; print_r($this->security->xss_clean(html_escape(array_merge($_POST))));exit;
+		// echo "<pre>"; print_r($this->security->xss_clean(html_escape(array_merge($_POST))));exit;
 		$result =array();
 		//PERMISSIONS KEY FROM FRONT END
 		$result= ($this->get_selected($role_id,array(
@@ -278,6 +278,18 @@ class Roles_model extends CI_Model {
 							                            'import_customers',
 							                            'import_suppliers',
 							                            'item_purchase_report',
+							                            
+							                            'sales_approved_panel_view',
+							                            'sales_approved_panel',
+							                            'sales_approved_panel_action',
+							                            'sales_approved_panel_notification',
+
+							                            'purchase_approved_panel_view',
+							                            'purchase_approved_panel',
+							                            'purchase_approved_panel_action',
+							                            'purchase_approved_panel_notification',
+							                            'don_not_show_item_unit_price_view',
+							                            'don_not_show_purchase_unit_price_view'
 													)));
 
 

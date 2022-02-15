@@ -101,7 +101,7 @@ class Sales extends MY_Controller {
 			$no++;
 			$row = array();
 			$strS='';
-			if($sales->approved_request == 0){
+			if($sales->approved_request == 3){
 
 	          $strS= "<span class='label label-warning' style='cursor:pointer'>Pending</span>";
 			}
@@ -409,6 +409,13 @@ class Sales extends MY_Controller {
 	/*v1.1*/
 	public function return_row_with_data($rowcount,$item_id){
 		echo $this->sales->get_items_info($rowcount,$item_id);
+	}
+	public function return_row_with_data2($rowcount,$item_id){
+		echo $this->sales->get_items_info2($rowcount,$item_id);
+	}
+	
+	public function return_sales_list2($sales_id){
+		echo $this->sales->return_sales_list2($sales_id);
 	}
 	public function return_sales_list($sales_id){
 		echo $this->sales->return_sales_list($sales_id);

@@ -23,7 +23,10 @@ class Purchase_temp_model extends CI_Model {
 		//$this->db->from('db_warehouse as c');
 		$this->db->where('b.id=a.supplier_id');
 		//$this->db->where('c.id=a.warehouse_id');
-
+		$request_status = $this->input->post('request_status');
+		if(!empty($request_status)){
+			$this->db->where("a.approved_request",$request_status);
+		}
 		$i = 0;
 	
 		foreach ($this->column_search as $item) // loop column 

@@ -174,16 +174,14 @@
             <i class=" fa fa-shopping-cart text-aqua"></i> <span><?= $this->lang->line('sales'); ?>
               
                <?php 
-
-              if($this->session->userdata('inv_userid') == 1){
-                $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=0")->row()->sCount;
-                if($sCount > 0){
-                  echo "<span class='label label-danger'>".$sCount."</span>";
-                }else{
-                  
-                }
+              if($CI->permissions('sales_approved_panel_notification')){
+                  $sCount = $this->db->query("select count(*) as sCount from db_tmp_sales where approved_request=3")->row()->sCount;
+                  if($sCount > 0){
+                    echo "<span class='label label-danger'>".$sCount."</span>";
+                  }else{
+                    
+                  }
               }
-
             ?>
 
             </span>
@@ -204,15 +202,13 @@
             <span>
           <?= $this->lang->line('sales_list'); ?>
           <?php 
-
-              if($this->session->userdata('inv_userid') == 1){
-                if($sCount > 0){
-                  echo "<span class='label label-danger'>".$sCount."</span>";
-                }else{
-                  
-                }
-              }
-
+            if($CI->permissions('sales_approved_panel_notification')){
+                  if($sCount > 0){
+                    echo "<span class='label label-danger'>".$sCount."</span>";
+                  }else{
+                    
+                  }
+            }
             ?>
           </span></a>
         </li>
@@ -263,8 +259,8 @@
 
               <?php 
 
-              if($this->session->userdata('inv_userid') == 1){
-                $ssCount = $this->db->query("select count(*) as ssCount from db_tmp_purchase where approved_request=0")->row()->ssCount;
+                if($CI->permissions('purchase_approved_panel_notification')){
+                $ssCount = $this->db->query("select count(*) as ssCount from db_tmp_purchase where approved_request=3")->row()->ssCount;
                 if($ssCount > 0){
                   echo "<span class='label label-danger'>".$ssCount."</span>";
                 }else{
@@ -285,7 +281,7 @@
             <li class="purchase-list-active-li"><a href="<?php echo $base_url; ?>purchase"><i class="fa fa-list "></i> <span><?= $this->lang->line('purchase_list'); ?></span>
                <?php 
 
-              if($this->session->userdata('inv_userid') == 1){
+              if($CI->permissions('purchase_approved_panel_notification')){
                 if($ssCount > 0){
                   echo "<span class='label label-danger'>".$ssCount."</span>";
                 }else{

@@ -50,6 +50,7 @@ $('#save,#update').click(function (e) {
 
 	//Atleast one record must be added in sales table 
     var rowcount=document.getElementById("hidden_rowcount").value;
+    var rowcount2=document.getElementById("hidden_rowcount2").value;
 	var flag1=false;
 	for(var n=1;n<=rowcount;n++){
 		if($("#td_data_"+n+"_3").val()!=null && $("#td_data_"+n+"_3").val()!=''){
@@ -94,7 +95,7 @@ $('#save,#update').click(function (e) {
         $("#"+this_id).attr('disabled',true);  //Enable Save or Update button
 				$.ajax({
 				type: 'POST',
-				url: base_url+'sales/sales_save_and_update?command='+this_id+'&rowcount='+rowcount+'&tot_subtotal_amt='+tot_subtotal_amt+'&tot_discount_to_all_amt='+tot_discount_to_all_amt+'&tot_round_off_amt='+tot_round_off_amt+'&tot_total_amt='+tot_total_amt+"&other_charges_amt="+other_charges_amt,
+				url: base_url+'sales/sales_save_and_update?command='+this_id+'&rowcount2='+rowcount2+'&rowcount='+rowcount+'&tot_subtotal_amt='+tot_subtotal_amt+'&tot_discount_to_all_amt='+tot_discount_to_all_amt+'&tot_round_off_amt='+tot_round_off_amt+'&tot_total_amt='+tot_total_amt+"&other_charges_amt="+other_charges_amt,
 				data: data,
 				cache: false,
 				contentType: false,
@@ -276,6 +277,43 @@ function decrement_qty(rowcount){
   }
   $("#td_data_"+rowcount+"_3").val((parseFloat(item_qty)-1).toFixed(2));
   calculate_tax(rowcount);
+}
+//INCREMENT ITEM
+function increment_qty2(rowcount){
+  
+  var flag = restrict_quantity($("#tr2_item_id_"+rowcount).val().trim());
+  if(!flag){ return false;}
+
+  var item_qty=$("#td2_data_"+rowcount+"_3").val();
+  var available_qty=$("#tr2_available_qty_"+rowcount+"_13").val();
+  if(parseFloat(item_qty)<parseFloat(available_qty)){
+
+    new_item_qty=parseFloat(item_qty)+1;
+
+    if(parseFloat(new_item_qty)>parseFloat(available_qty)){
+      new_item_qty = available_qty;
+    }
+
+    $("#td2_data_"+rowcount+"_3").val(new_item_qty);
+  }
+}
+//DECREMENT ITEM
+function decrement_qty2(rowcount){
+  var item_qty=$("#td2_data_"+rowcount+"_3").val();
+
+  if(item_qty<1){
+     $("#td2_data_"+rowcount+"_3").val((item_qty).toFixed(2));
+     toastr["warning"]("Minimum Stock!");
+     return;
+  }
+
+  if(item_qty<=1){
+    $("#td2_data_"+rowcount+"_3").val(1);
+      toastr["warning"]("Minimum Stock!");
+    return;
+  }
+  $("#td2_data_"+rowcount+"_3").val((parseFloat(item_qty)-1).toFixed(2));
+  // calculate_tax(rowcount);
 }
 
 function update_paid_payment_total() {
@@ -550,3 +588,112 @@ function delete_sales_payment(payment_id){
      $("#item_search").attr({ disabled: true,}); 
     }
   });*/
+
+
+function return_row_with_data2(item_id){
+  $("#item_search2").addClass('ui-autocomplete-loader-center');
+  var base_url=$("#base_url").val().trim();
+  var rowcount=$("#hidden_rowcount2").val();
+  $.post(base_url+"sales/return_row_with_data2/"+rowcount+"/"+item_id,{},function(result){
+        //alert(result);
+        $('#gift_table tbody').append(result);
+        $("#hidden_rowcount2").val(parseFloat(rowcount)+1);
+        success.currentTime = 0;
+        success.play();
+        $("#item_search2").removeClass('ui-autocomplete-loader-center');
+    }); 
+}
+$("#item_search2").bind("paste", function(e){
+    $("#item_search2").autocomplete('search');
+} );
+$("#item_search2").autocomplete({
+    source: function(data, cb){
+        $.ajax({
+          autoFocus:true,
+            url: $("#base_url").val()+'items/get_json_items_details',
+            method: 'GET',
+            dataType: 'json',
+            /*showHintOnFocus: true,
+      autoSelect: true, 
+      
+      selectInitial :true,*/
+      
+            data: {
+                name: data.term,
+                /*warehouse_id:$("#warehouse_id").val().trim(),*/
+            },
+            success: function(res){
+              //console.log(res);
+                var result;
+                result = [
+                    {
+                        //label: 'No Records Found '+data.term,
+                        label: 'No Records Found ',
+                        value: ''
+                    }
+                ];
+
+                if (res.length) {
+                    result = $.map(res, function(el){
+                        return {
+                            label: el.item_code +'--[Qty:'+el.stock+'] --'+ el.label,
+                            value: '',
+                            id: el.id,
+                            item_name: el.value,
+                            stock: el.stock,
+                           // mobile: el.mobile,
+                            //customer_dob: el.customer_dob,
+                            //address: el.address,
+                        };
+                    });
+                }
+
+                cb(result);
+            }
+        });
+    },
+        response:function(e,ui){
+          if(ui.content.length==1){
+            $(this).data('ui-autocomplete')._trigger('select', 'autocompleteselect', ui);
+            $(this).autocomplete("close");
+          }
+          //console.log(ui.content[0].id);
+        },
+        //loader start
+        search: function (e, ui) {
+        },
+        select: function (e, ui) { 
+          
+            //$("#mobile").val(ui.item.mobile)
+            //$("#item_search").val(ui.item.value);
+            //$("#customer_dob").val(ui.item.customer_dob)
+            //$("#address").val(ui.item.address)
+            //alert("id="+ui.item.id);
+
+            if(typeof ui.content!='undefined'){
+              console.log("Autoselected first");
+              if(isNaN(ui.content[0].id)){
+                return;
+              }
+              var stock=ui.content[0].stock;
+              var item_id=ui.content[0].id;
+            }
+            else{
+              console.log("manual Selected");
+              var stock=ui.item.stock;
+              var item_id=ui.item.id;
+            }
+            if(parseFloat(stock)<=0){
+              toastr["warning"](stock+" Items in Stock!!");
+              failed.currentTime = 0; 
+              failed.play();
+              return false;
+            }
+            if(restrict_quantity(item_id)){
+              return_row_with_data2(item_id);  
+            }
+            $("#item_search2").val('');
+            
+        },   
+        //loader end
+});

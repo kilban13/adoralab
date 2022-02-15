@@ -98,7 +98,12 @@ class Items extends MY_Controller {
 			$row[] = $items->unit_name;
 			$row[] = $items->stock;
 			$row[] = $items->alert_qty;
-			$row[] = app_number_format($items->purchase_price);
+			// $row[] = app_number_format($items->purchase_price);
+			if($this->permissions('don_not_show_purchase_unit_price_view') && $this->session->userdata('inv_userid') != 1){
+				
+			}else{
+				$row[] = app_number_format($items->purchase_price);
+			}
 			$row[] = app_number_format($items->final_price);
 			$row[] = $items->tax_name."<br>(".$items->tax_type.")";
 

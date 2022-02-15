@@ -115,7 +115,14 @@
                   <th><?= $this->lang->line('unit'); ?></th>
                   <th><?= $this->lang->line('stock_qty'); ?></th>
                   <th><?= $this->lang->line('minimum_qty'); ?></th>
-                  <th><?= $this->lang->line('purchase_price'); ?></th>
+                  <?php 
+                            if($CI->permissions('don_not_show_purchase_unit_price_view') && $this->session->userdata('inv_userid') != 1){
+
+                            }else{ ?>
+                                <th><?= $this->lang->line('purchase_price'); ?></th>
+
+                           <?php } ?>
+
                   <th><?= $this->lang->line('final_sales_price'); ?></th>
                   <th><?= $this->lang->line('tax'); ?></th>
 	         	  	  <th><?= $this->lang->line('status'); ?></th>
@@ -219,7 +226,7 @@ function load_datatable(){
         //Set column definition initialisation properties.
         "columnDefs": [
         { 
-            "targets": [ 0,1,12,13 ], //first column / numbering column
+            "targets": [ 0,1 ], //first column / numbering column
             "orderable": false, //set not orderable
         },
         {

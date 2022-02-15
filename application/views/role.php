@@ -676,6 +676,76 @@ echo "<pre>";
                                               </label></div>
                                           </td>
                                         </tr>
+                                        <!-- Approve Panel -->
+                                        <tr>
+                                          <td><?= $i++;?></td>
+                                          <td>Sales Approved Panel</td>
+                                          <td>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="change_me" id="sales_approved_panel" > <?= $this->lang->line('select_all'); ?>
+                                              </label></div>
+                                          </td>
+                                          <td>
+                                              <input type="hidden" name="module[sales_approved_panel]" value="on">
+                                              
+                                               <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="sales_approved_panel_all" id='sales_approved_panel_notification' name="permission[sales_approved_panel_notification]" > Approved Panel Notification
+                                              </label></div>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="sales_approved_panel_all" id='sales_approved_panel_view' name="permission[sales_approved_panel_view]" > Approved Panel view
+                                              </label></div>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="sales_approved_panel_all" id='sales_approved_panel_action' name="permission[sales_approved_panel_action]"> Accept/Reject
+                                              </label></div>
+                                             
+                                          </td>
+                                        </tr>
+                                         <!-- Stock report unit price -->
+                                        <tr>
+                                          <td><?= $i++;?></td>
+                                          <td>Show Price</td>
+                                          <td>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="change_me" id="show_item_unit_price" > <?= $this->lang->line('select_all'); ?>
+                                              </label></div>
+                                          </td>
+                                          <td>
+                                              <input type="hidden" name="module[show_item_unit_price]" value="on">
+                                              
+                                               <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="show_item_unit_price_all" id='don_not_show_item_unit_price_view' name="permission[don_not_show_item_unit_price_view]" > Do Not Show Item Unit Price 
+                                              </label></div>
+                                              
+                                                 <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="show_item_unit_price_all" id='don_not_show_purchase_unit_price_view' name="permission[don_not_show_purchase_unit_price_view]" > Do Not Show Purchase  Price 
+                                              </label></div>
+                                             
+                                          </td>
+                                        </tr>
+                                           <!-- Purchase Panel -->
+                                        <tr>
+                                          <td><?= $i++;?></td>
+                                          <td>Purchase Approved Panel</td>
+                                          <td>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="change_me" id="purchase_approved_panel" > <?= $this->lang->line('select_all'); ?>
+                                              </label></div>
+                                          </td>
+                                          <td>
+                                              <input type="hidden" name="module[purchase_approved_panel]" value="on">
+                                              
+                                               <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="purchase_approved_panel_all" id='purchase_approved_panel_notification' name="permission[purchase_approved_panel_notification]" > Approved Panel Notification
+                                              </label></div>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="purchase_approved_panel_all" id='purchase_approved_panel_view' name="permission[purchase_approved_panel_view]" > Approved Panel view
+                                              </label></div>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="purchase_approved_panel_all" id='purchase_approved_panel_action' name="permission[purchase_approved_panel_action]"> Accept/Reject
+                                              </label></div>
+                                             
+                                          </td>
+                                        </tr>
                                       </tbody>
                                       
                                     </table>

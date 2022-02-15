@@ -114,13 +114,35 @@
         <!-- ********** ALERT MESSAGE START******* -->
         <?php include"comman/code_flashdata.php"; ?>
         <!-- ********** ALERT MESSAGE END******* -->
+      <?php if($CI->permissions('sales_approved_panel_view')){ ?>
         <div class="col-xs-12">
           <div class="box" style="border: 2px solid red;">
             <div class="box-header with-border bg-red">
               <h3 class="box-title">Sales List for approval</h3>
             </div>
             <!-- /.box-header -->
+
             <div class="box-body">
+
+                  <div class="row">
+                    <div class="col-md-12">
+                    <div class="col-md-3 col-md-3 col-md-offset-4">
+                        <label for="request_status" class=" control-label">Select Request Status</label>
+                          <select class="form-control select2" id="request_status" name="request_status"  style="width: 100%;">
+                            <?php if($this->session->userdata('inv_userid') == 1) {?>
+                              <option value="1" selected="selected">Approved</option>
+                              <option value="3">Pending</option>
+                              <option value="2">Rejected</option>
+                          <?php } else{?>
+                              <option value="3" selected="selected">Pending</option>
+                              <option value="2">Rejected</option>
+                              <option value="1" >Approved</option>
+
+                          <?php } ?>
+                         </select>
+                    </div>
+                  </div>
+                </div>
               <table id="example3" class="table table-bordered table-striped " width="100%">
                 <thead class="bg-danger bg-danger ">
                 <tr>
@@ -152,6 +174,7 @@
           <!-- /.box -->
         </div>
         <!-- /.col -->
+      <?php } ?>
       </div>
       <!-- /.row -->
 
@@ -242,14 +265,126 @@
      todayHighlight: true
     });
 </script>
+<?php if($CI->permissions('sales_approved_panel_view')){ ?>
+<script type="text/javascript">
+function load_datatable(){
+  var table2 = $('#example3').DataTable({ 
+
+      /* FOR EXPORT BUTTONS START*/
+      dom:'<"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr><"pull-right margin-left-10 "B>>>tip',
+      /* dom:'<"row"<"col-sm-12"<"pull-left"B><"pull-right">>> <"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr>>>tip',*/
+      buttons: {
+        buttons: [
+            {
+                className: 'btn bg-red color-palette btn-flat hidden delete_btn pull-left',
+                text: 'Delete',
+                action: function ( e, dt, node, config ) {
+                    multi_delete();
+                }
+            },
+            // { extend: 'copy', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
+            // { extend: 'excel', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
+            // { extend: 'pdf', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
+            // { extend: 'print', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
+            // { extend: 'csv', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
+            // { extend: 'colvis', className: 'btn bg-teal color-palette btn-flat',text:'Columns' },  
+
+            ]
+        },
+        /* FOR EXPORT BUTTONS END */
+
+        "processing": true, //Feature control the processing indicator.
+        "serverSide": true, //Feature control DataTables' server-side processing mode.
+        "order": [], //Initial no order.
+        "responsive": true,
+        language: {
+            processing: '<div class="text-primary bg-primary" style="position: relative;z-index:100;overflow: visible;">Processing...</div>'
+        },
+        // Load data for the table's content from an Ajax source
+        "ajax": {
+            "url": "<?php echo site_url('sales/temp_ajax_list')?>",
+            "type": "POST",
+            "data":{
+              request_status : $("#request_status").val()
+            },
+            complete: function (data) {
+             $('.column_checkbox').iCheck({
+                checkboxClass: 'icheckbox_square-orange',
+                /*uncheckedClass: 'bg-white',*/
+                radioClass: 'iradio_square-orange',
+                increaseArea: '10%' // optional
+              });
+             call_code();
+              //$(".delete_btn").hide();
+             },
+
+        },
+
+        //Set column definition initialisation properties.
+        "columnDefs": [
+            { 
+                "targets": [ 0,11], //first column / numbering column
+                "orderable": false, //set not orderable
+            },
+            {
+                "targets" :[0],
+                "className": "text-center",
+            },
+        
+        ],
+        /*Start Footer Total*/
+        "footerCallback": function ( row, data, start, end, display ) {
+            // var api = this.api(), data;
+            // // Remove the formatting to get integer data for summation
+            // var intVal = function ( i ) {
+            //     return typeof i === 'string' ?
+            //         i.replace(/[\$,]/g, '')*1 :
+            //         typeof i === 'number' ?
+            //             i : 0;
+            // };
+            // var total = api
+            //     .column( 6, { page: 'none'} )
+            //     .data()
+            //     .reduce( function (a, b) {
+            //         return intVal(a) + intVal(b);
+            //     }, 0 );
+            // var paid = api
+            //     .column( 7, { page: 'none'} )
+            //     .data()
+            //     .reduce( function (a, b) {
+            //         return intVal(a) + intVal(b);
+            //     }, 0 );
+            // var due = api
+            //     .column( 8, { page: 'none'} )
+            //     .data()
+            //     .reduce( function (a, b) {
+            //         return intVal(a) + intVal(b);
+            //     }, 0 );
+           
+            //$( api.column( 0 ).footer() ).html('Total');
+            // $( api.column( 6 ).footer() ).html(app_number_format(total));
+            // $( api.column( 7 ).footer() ).html(app_number_format(paid));
+            // $( api.column( 8 ).footer() ).html(app_number_format(due));
+           
+        },
+        /*End Footer Total*/
+    });
+    new $.fn.dataTable.FixedHeader( table2 );
+}
+$(document).ready(function() {
+    //datatables
+   load_datatable();
+});
+</script>
+<?php } ?>
 <script type="text/javascript">
 $(document).ready(function() {
     //datatables
    var table = $('#example2').DataTable({ 
 
       /* FOR EXPORT BUTTONS START*/
-  dom:'<"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr><"pull-right margin-left-10 "B>>>tip',
- /* dom:'<"row"<"col-sm-12"<"pull-left"B><"pull-right">>> <"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr>>>tip',*/
+      dom:'<"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr><"pull-right margin-left-10 "B>>>tip',
+      /* dom:'<"row"<"col-sm-12"<"pull-left"B><"pull-right">>> <"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr>>>tip',*/
       buttons: {
         buttons: [
             {
@@ -346,106 +481,6 @@ $(document).ready(function() {
     });
     new $.fn.dataTable.FixedHeader( table );
 
-    var table2 = $('#example3').DataTable({ 
-
-      /* FOR EXPORT BUTTONS START*/
-  dom:'<"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr><"pull-right margin-left-10 "B>>>tip',
- /* dom:'<"row"<"col-sm-12"<"pull-left"B><"pull-right">>> <"row margin-bottom-12"<"col-sm-12"<"pull-left"l><"pull-right"fr>>>tip',*/
-      buttons: {
-        buttons: [
-            {
-                className: 'btn bg-red color-palette btn-flat hidden delete_btn pull-left',
-                text: 'Delete',
-                action: function ( e, dt, node, config ) {
-                    multi_delete();
-                }
-            },
-            // { extend: 'copy', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
-            // { extend: 'excel', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
-            // { extend: 'pdf', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
-            // { extend: 'print', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
-            // { extend: 'csv', className: 'btn bg-teal color-palette btn-flat',exportOptions: { columns: [1,2,3,4,5,6,7,8,9]} },
-            // { extend: 'colvis', className: 'btn bg-teal color-palette btn-flat',text:'Columns' },  
-
-            ]
-        },
-        /* FOR EXPORT BUTTONS END */
-
-        "processing": true, //Feature control the processing indicator.
-        "serverSide": true, //Feature control DataTables' server-side processing mode.
-        "order": [], //Initial no order.
-        "responsive": true,
-        language: {
-            processing: '<div class="text-primary bg-primary" style="position: relative;z-index:100;overflow: visible;">Processing...</div>'
-        },
-        // Load data for the table's content from an Ajax source
-        "ajax": {
-            "url": "<?php echo site_url('sales/temp_ajax_list')?>",
-            "type": "POST",
-            
-            complete: function (data) {
-             $('.column_checkbox').iCheck({
-                checkboxClass: 'icheckbox_square-orange',
-                /*uncheckedClass: 'bg-white',*/
-                radioClass: 'iradio_square-orange',
-                increaseArea: '10%' // optional
-              });
-             call_code();
-              //$(".delete_btn").hide();
-             },
-
-        },
-
-        //Set column definition initialisation properties.
-        "columnDefs": [
-            { 
-                "targets": [ 0,11], //first column / numbering column
-                "orderable": false, //set not orderable
-            },
-            {
-                "targets" :[0],
-                "className": "text-center",
-            },
-        
-        ],
-        /*Start Footer Total*/
-        "footerCallback": function ( row, data, start, end, display ) {
-            // var api = this.api(), data;
-            // // Remove the formatting to get integer data for summation
-            // var intVal = function ( i ) {
-            //     return typeof i === 'string' ?
-            //         i.replace(/[\$,]/g, '')*1 :
-            //         typeof i === 'number' ?
-            //             i : 0;
-            // };
-            // var total = api
-            //     .column( 6, { page: 'none'} )
-            //     .data()
-            //     .reduce( function (a, b) {
-            //         return intVal(a) + intVal(b);
-            //     }, 0 );
-            // var paid = api
-            //     .column( 7, { page: 'none'} )
-            //     .data()
-            //     .reduce( function (a, b) {
-            //         return intVal(a) + intVal(b);
-            //     }, 0 );
-            // var due = api
-            //     .column( 8, { page: 'none'} )
-            //     .data()
-            //     .reduce( function (a, b) {
-            //         return intVal(a) + intVal(b);
-            //     }, 0 );
-           
-            //$( api.column( 0 ).footer() ).html('Total');
-            // $( api.column( 6 ).footer() ).html(app_number_format(total));
-            // $( api.column( 7 ).footer() ).html(app_number_format(paid));
-            // $( api.column( 8 ).footer() ).html(app_number_format(due));
-           
-        },
-        /*End Footer Total*/
-    });
-    // new $.fn.dataTable.FixedHeader( table2 );
 });
 </script>
 <script src="<?php echo $theme_link; ?>js/sales.js"></script>
@@ -453,6 +488,10 @@ $(document).ready(function() {
   function print_invoice(id){
   window.open("<?= base_url();?>pos/print_invoice_pos/"+id, "_blank", "scrollbars=1,resizable=1,height=500,width=500");
 }
+$("#request_status").change(function(){
+    $('#example3').DataTable().destroy();
+    load_datatable();
+});
 </script>
 <!-- Make sidebar menu hughlighter/selector -->
 <script>$(".<?php echo basename(__FILE__,'.php');?>-active-li").addClass("active");</script>

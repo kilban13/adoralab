@@ -119,7 +119,7 @@ class Purchase extends MY_Controller {
 			$row = array();
 			$strS='';
 
-			if($purchase->approved_request == 0){
+			if($purchase->approved_request == 3){
 
 	          $strS= "<span class='label label-warning' style='cursor:pointer'>Pending</span>";
 			}

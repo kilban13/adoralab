@@ -381,7 +381,56 @@ class Pos_model extends CI_Model {
 		else{
 			return false;
 		}
-	}	
+	}
+
+	public function update_items_quantity_from_gift($item_id,$sale_id){
+		// //UPDATE itemS QUANTITY IN itemS TABLE
+		// $q7=$this->db->query("select stock as stock_qty from db_items where id='$item_id'");
+		// $stock_qty=$q7->row()->stock_qty;
+
+
+		// $q92=$this->db->query("select coalesce(SUM(sales_qty),0) as sl_tot_qty2 from tbl_giftitems where item_id='$item_id' and sales_id ='$sale_id' and sales_status='Final' and status=2");
+		// $sl_tot_qty2=$q92->row()->sl_tot_qty2; 
+
+		// $stock=(($stock_qty-$sl_tot_qty2));
+		// $q7=$this->db->query("update db_items set stock=$stock where id='$item_id'");
+		// if($q7){
+		// 	return true;
+		// }
+		// else{
+		// 	return false;
+		// }
+
+		//UPDATE itemS QUANTITY IN itemS TABLE
+		$q7=$this->db->query("select COALESCE(SUM(qty),0) as stock_qty from db_stockentry where item_id='$item_id'");
+		$stock_qty=$q7->row()->stock_qty;
+
+		$q8=$this->db->query("select COALESCE(SUM(purchase_qty),0) as pu_tot_qty from db_purchaseitems where item_id='$item_id' and purchase_status='Received'");
+		$pu_tot_qty=$q8->row()->pu_tot_qty;
+		
+		$q9=$this->db->query("select coalesce(SUM(sales_qty),0) as sl_tot_qty from db_salesitems where item_id='$item_id' and sales_status='Final'");
+		$sl_tot_qty=$q9->row()->sl_tot_qty;
+
+		$q93=$this->db->query("select coalesce(SUM(sales_qty),0) as sl_tot_qty2 from tbl_giftitems where item_id='$item_id' and sales_status='Final'");
+		$sl_tot_qty2=$q93->row()->sl_tot_qty2;
+
+		/*Fid Return Items Count*/
+		$q6=$this->db->query("select COALESCE(SUM(return_qty),0) as pu_return_tot_qty from db_purchaseitemsreturn where item_id='$item_id' ");/*and purchase_id is null */
+		$pu_return_tot_qty=$q6->row()->pu_return_tot_qty;
+
+		/*Fid Return Items Count*/
+		$q6=$this->db->query("select COALESCE(SUM(return_qty),0) as sl_return_tot_qty from db_salesitemsreturn where item_id='$item_id' ");/*and sales_id is null */
+		$sl_return_tot_qty=$q6->row()->sl_return_tot_qty;
+
+		$stock=((($stock_qty+$pu_tot_qty)-$sl_tot_qty-$sl_tot_qty2)+$sl_return_tot_qty)-$pu_return_tot_qty;
+		$q7=$this->db->query("update db_items set stock=$stock where id='$item_id'");
+		if($q7){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}		
 	
 
 	public function edit_pos($sales_id){

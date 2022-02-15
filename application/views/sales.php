@@ -98,6 +98,7 @@ padding-right: 2px;
                         <?= form_open('#', array('class' => 'form-horizontal', 'id' => 'sales-form', 'enctype'=>'multipart/form-data', 'method'=>'POST'));?>
                            <input type="hidden" id="base_url" value="<?php echo $base_url;; ?>">
                            <input type="hidden" value='1' id="hidden_rowcount" name="hidden_rowcount">
+                           <input type="hidden" value='1' id="hidden_rowcount2" name="hidden_rowcount2">
                            <input type="hidden" value='0' id="hidden_update_rowid" name="hidden_update_rowid">
                            <input type="hidden" id="user_type" value="<?php echo $this->session->userdata('inv_userid') ?> " >
                           
@@ -366,6 +367,57 @@ padding-right: 2px;
                                     </div>
                                  </div>
                               </div>
+                              
+                              <!-- Gift ItemGift ItemGift Item-->
+                              <!-- Gift ItemGift ItemGift Item-->
+                              <div class="col-xs-12 ">
+                                 <div class="col-sm-12">
+                                       <div class=" ">
+                                          <div class="col-md-12">
+                                             <label>
+                                        <input type="checkbox"  class="form-control" id="gift_check" name="gift_check"> <label for="gift_check" class=" control-label" >
+                                          Gift/Sample
+                                        </label>
+                                      </label>
+                                        </div><!-- col-md-12 -->
+                                       </div>
+                                       <!-- /.box-body -->
+                                    </div>
+                                 <!-- /.box -->
+                              </div> 
+                              <div class="col-md-8" id="gift_content">
+                                <div class="col-md-12">
+                                  <div class="box" style="border:1px solid green;">
+                                    <div class="box-info">
+                                      <div class="box-header">
+                                        <div class="col-md-8 col-md-offset-2 d-flex justify-content" >
+                                          <div class="input-group">
+                                                <span class="input-group-addon" title="Select Gift Items"><i class="fa fa-barcode"></i></span>
+                                                 <input type="text" class="form-control " placeholder="Gift Item name/Barcode/Itemcode" id="item_search2">
+                                              </div>
+                                        </div>
+                                      </div>
+                                      <div class="box-body">
+                                        <div class="table-responsive" style="width: 100%">
+                                        <table class="table table-hover table-bordered" style="width:100%" id="gift_table">
+                                             <thead class="custom_thead ">
+                                                <tr class="bg-success" >
+                                                   <th rowspan='2' style="width:15%"><?= $this->lang->line('item_name'); ?></th>
+                                                   <th rowspan='2' style="width:10%;min-width: 180px;"><?= $this->lang->line('quantity'); ?></th>
+                                                   <th rowspan='2' style="width:7.5%"><?= $this->lang->line('action'); ?></th>
+                                                </tr>
+                                             </thead>
+                                             <tbody>
+                                               
+                                             </tbody>
+                                          </table>
+                                      </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                           <!-- ---- ------ - ---- ------ - ---- ------ -->
 
                               <div class="col-xs-12 ">
                                  <div class="col-sm-12">
@@ -492,8 +544,7 @@ padding-right: 2px;
                                       }
                                     }
 
-                              ?>
-                             
+                              ?>                    
                               <div class="col-xs-12 ">
                                  <div class="col-sm-12">
                                        <div class="box-body ">
@@ -567,10 +618,22 @@ padding-right: 2px;
 </div>
 <!-- ./wrapper -->
 
-      <script src="<?php echo $theme_link; ?>js/sales.js"></script>  
+      <script src="<?php echo $theme_link; ?>js/sales.js"></script> 
+
+
       <script>
+         $(document).ready(function () {
+            $("#gift_content").hide();
+            $('input').on('ifChecked', function (event){
+                 $("#gift_content").show();                  
+            });
+
+            $('input').on('ifUnchecked', function (event) {
+               $("#gift_content").hide();
+            });
+             
+         });
         
-         //Initialize Select2 Elements
              $(".select2").select2();
          //Date picker
              $('.datepicker').datepicker({
@@ -760,11 +823,28 @@ padding-right: 2px;
           //alert("final_total() end");
          }
          /* ---------- Final Description of amount end ------------*/
+                  /* ---------- Final Description of amount ------------*/
+         function final_total2(){
+           
+
+           var rowcount=$("#hidden2_rowcount").val();
+           var subtotal=parseFloat(0);
+          
+           
+        }
+         /* ---------- Final Description of amount end ------------*/
           
          function removerow(id){//id=Rowid
            
          $("#row_"+id).remove();
          final_total();
+         failed.currentTime = 0;
+        failed.play();
+         }
+         function removerow2(id){//id=Rowid
+           
+         $("#row2_"+id).remove();
+         final_total2();
          failed.currentTime = 0;
         failed.play();
          }
@@ -886,6 +966,15 @@ padding-right: 2px;
       }
       calculate_tax(i);
     }
+   function item_qty_input2(i){
+   
+      var item_qty=$("#td2_data_"+i+"_3").val();
+      var available_qty=$("#tr2_available_qty_"+i+"_13").val();
+      if(parseFloat(item_qty)>parseFloat(available_qty)){
+        $("#td2_data_"+i+"_3").val(available_qty);
+        toastr["warning"]("Oops! You have only "+available_qty+" items in Stock");
+      }
+    }
 
       </script>
 
@@ -901,9 +990,22 @@ padding-right: 2px;
                   //alert(result);
                   $('#sales_table tbody').append(result);
                   $("#hidden_rowcount").val(parseFloat(<?=$items_count;?>)+1);
-                  success.currentTime = 0;
-                  success.play();
+                  // success.currentTime = 0;
+                  // success.play();
                   enable_or_disable_item_discount();
+                  $(".overlay").remove();
+              }); 
+
+                $.post(base_url+"sales/return_sales_list2/"+sales_id,{},function(result){
+                  //alert(result);
+                  $('#gift_table tbody').append(result);
+                  $("#hidden_rowcount2").val(parseFloat(<?=$items_count;?>)+1);
+                  if($("#hidden_rowcount2").val() >= 1){
+                     $('input').iCheck('check');
+                  }
+                  // success.currentTime = 0;
+                  // success.play();
+                  // enable_or_disable_item_discount();
                   $(".overlay").remove();
               }); 
              });
