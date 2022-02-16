@@ -279,9 +279,10 @@ class Sales_model extends CI_Model {
 				// die('hello');
 				
 				$q2 = $this->db->insert('tbl_giftitems', $salesgift_entry);
+				
 				//UPDATE itemS QUANTITY IN itemS TABLE
 				$this->load->model('pos_model');				
-				$q6=$this->pos_model->update_items_quantity_from_gift($item_id,$sales_id);
+				$q6=$this->pos_model->update_items_quantity($item_id);
 				if(!$q6){
 					return "failed";
 				}
