@@ -90,7 +90,7 @@ class Sales extends MY_Controller {
 		
 	}
 	public function request_invoice_reject($id){
-		if($this->session->userdata('inv_userid') == 1){
+		if($this->permissions('sales_approved_panel_action')){
 			$result = $this->sales->Temp_verify_reject($id);
 			echo $result;
 		}else{

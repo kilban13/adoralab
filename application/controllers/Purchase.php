@@ -61,7 +61,7 @@ class Purchase extends MY_Controller {
 	}
 	public function request_invoice_approved($id){
 
-		if($this->session->userdata('inv_userid') == 1){
+		if($this->permissions('purchase_approved_panel_action')){
 			$result = $this->purchase->Temp_verify_save_to_main_sale($id);
 			echo $result;
 		}else{
@@ -70,7 +70,7 @@ class Purchase extends MY_Controller {
 		
 	}
 	public function request_invoice_reject($id){
-		if($this->session->userdata('inv_userid') == 1){
+		if($this->permissions('purchase_approved_panel_action')){
 			$result = $this->purchase->Temp_verify_reject($id);
 			echo $result;
 		}else{

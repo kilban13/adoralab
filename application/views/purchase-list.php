@@ -140,13 +140,13 @@
                           <label for="request_status" class=" control-label">Select Request Status</label>
                              <select class="form-control select2" id="request_status" name="request_status"  style="width: 100%;">
                               <?php if($this->session->userdata('inv_userid') == 1) {?>
-                                <option value="1" selected="selected">Approved</option>
-                                <option value="3">Pending</option>
+                                <!-- <option value="1" selected="selected">Approved</option> -->
+                              <option value="3" selected="selected">Pending</option>
                                 <option value="2">Rejected</option>
                             <?php } else{?>
-                                <option value="3" selected="selected">Pending</option>
+                              <option value="3" selected="selected">Pending</option>
                                 <option value="2">Rejected</option>
-                                <option value="1" >Approved</option>
+                                <!-- <option value="1" >Approved</option> -->
 
                             <?php } ?>
                            </select>
