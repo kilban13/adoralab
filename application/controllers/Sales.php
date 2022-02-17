@@ -74,12 +74,19 @@ class Sales extends MY_Controller {
 	}
 	public function request_invoice_approved($id){
 
-		if($this->session->userdata('inv_userid') == 1){
+
+		if($this->permissions('sales_approved_panel_action')){
 			$result = $this->sales->Temp_verify_save_to_main_sale($id);
 			echo $result;
 		}else{
 			show_404();exit;
 		}
+		// if($this->session->userdata('inv_userid') == 1){
+		// 	$result = $this->sales->Temp_verify_save_to_main_sale($id);
+		// 	echo $result;
+		// }else{
+		// 	show_404();exit;
+		// }
 		
 	}
 	public function request_invoice_reject($id){
