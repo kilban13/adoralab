@@ -41,7 +41,7 @@ class Sales extends MY_Controller {
 		
 		if ($this->form_validation->run() == TRUE) {
 
-			if($this->session->userdata('inv_userid') != 1){
+			if($this->session->userdata('inv_userid') != 1 && $this->input->post('form_type') == 'temp'){
 				$result = $this->sales_temp->verify_save_and_update();
 	    		echo $result;
 			}else{

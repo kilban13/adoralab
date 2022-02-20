@@ -101,7 +101,7 @@ padding-right: 2px;
                            <input type="hidden" value='1' id="hidden_rowcount2" name="hidden_rowcount2">
                            <input type="hidden" value='0' id="hidden_update_rowid" name="hidden_update_rowid">
                            <input type="hidden" id="user_type" value="<?php echo $this->session->userdata('inv_userid') ?> " >
-                          
+                           <input type="hidden"  id="temp" name="form_type" value="not_temp">
                            <div class="box-body">
                               <div class="form-group">
                                  <label for="customer_id" class="col-sm-2 control-label"><?= $this->lang->line('customer_name'); ?><label class="text-danger">*</label></label>
