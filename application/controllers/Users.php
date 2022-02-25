@@ -47,8 +47,21 @@
 				}
 				else{
 					$q_id=$this->input->post('q_id');
-					$data['q_id']=$q_id;
-					$result=$this->users_model->verify_and_update($data);
+					$password=$this->input->post('pass');
+					if(isset($password) && $password != '' && $password != null){
+						$this->form_validation->set_rules('pass', 'Password', 'required|trim|min_length[5]|max_length[12]');
+						$this->form_validation->set_rules('confirm', 'Confirm Password', 'required|matches[pass]');
+						if ($this->form_validation->run() == TRUE) {
+							$data['q_id']=$q_id;
+							$result=$this->users_model->verify_and_update($data);
+						}else{
+							echo validation_errors();
+						}
+					}else{
+						$data['q_id']=$q_id;
+						$result=$this->users_model->verify_and_update($data);
+					}
+
 				}
 				
 				echo $result;

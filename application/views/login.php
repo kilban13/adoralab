@@ -27,7 +27,7 @@
 <div class="login-box">
   <div class="login-logo">
     <a href="#" style="color: white"><b>
-      Inventory with POS
+      <?php print $SITE_TITLE; ?>
     </b></a>
   </div>
   <!-- /.login-logo -->

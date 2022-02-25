@@ -109,6 +109,9 @@ class Users_model extends CI_Model {
 		if(isset($profile_picture)){
 			$this->db->set("profile_picture",$profile_picture);
 		}
+		if(isset($pass)){
+			$this->db->set("password",md5($pass));
+		}
 		$this->db->set("mobile",$mobile);
 		$this->db->set("email",$email);
 		$this->db->where("id",$q_id);
