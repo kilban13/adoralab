@@ -98,12 +98,12 @@
           <div class="box">
             <div class="box-header with-border">
               <h3 class="box-title">Gift/Sample</h3>
-              <?php //if($CI->permissions('sales_add')) { ?>
+              <?php if($CI->permissions('gv_add')) { ?>
               <div class="box-tools">
                 <a class="btn btn-block btn-info" href="<?php echo $base_url; ?>voucher/add">
                 <i class="fa fa-plus"></i> Add Gift/Sample</a>
               </div>
-              <?php// } ?>
+              <?php } ?>
             </div>
             <!-- /.box-header -->
             <div class="box-body">
