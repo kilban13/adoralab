@@ -368,6 +368,9 @@ class Pos_model extends CI_Model {
 		$q93=$this->db->query("select coalesce(SUM(sales_qty),0) as sl_tot_qty2 from tbl_giftitems where item_id='$item_id' and sales_status='Final'");
 		$sl_tot_qty2=$q93->row()->sl_tot_qty2;
 
+		$q94=$this->db->query("select coalesce(SUM(quantity),0) as sl_tot_qty3 from tbl_gift_without_sale_items where item_id='$item_id'");
+		$sl_tot_qty3=$q94->row()->sl_tot_qty3;
+
 		/*Fid Return Items Count*/
 		$q6=$this->db->query("select COALESCE(SUM(return_qty),0) as pu_return_tot_qty from db_purchaseitemsreturn where item_id='$item_id' ");/*and purchase_id is null */
 		$pu_return_tot_qty=$q6->row()->pu_return_tot_qty;
@@ -376,7 +379,7 @@ class Pos_model extends CI_Model {
 		$q6=$this->db->query("select COALESCE(SUM(return_qty),0) as sl_return_tot_qty from db_salesitemsreturn where item_id='$item_id' ");/*and sales_id is null */
 		$sl_return_tot_qty=$q6->row()->sl_return_tot_qty;
 
-		$stock=((($stock_qty+$pu_tot_qty)-$sl_tot_qty-$sl_tot_qty2)+$sl_return_tot_qty)-$pu_return_tot_qty;
+		$stock=((($stock_qty+$pu_tot_qty)-$sl_tot_qty-$sl_tot_qty2-$sl_tot_qty3)+$sl_return_tot_qty)-$pu_return_tot_qty;
 		$q7=$this->db->query("update db_items set stock=$stock where id='$item_id'");
 		if($q7){
 			return true;

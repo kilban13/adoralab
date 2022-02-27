@@ -746,6 +746,30 @@ echo "<pre>";
                                              
                                           </td>
                                         </tr>
+                                        <!-- Gift/Sample Panel -->
+                                        <tr>
+                                          <td><?= $i++;?></td>
+                                          <td>Gift/Sample Panel</td>
+                                          <td>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="change_me" id="gv" > <?= $this->lang->line('select_all'); ?>
+                                              </label></div>
+                                          </td>
+                                          <td>
+                                              <input type="hidden" name="module[gv]" value="on">
+                                              
+                                               <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="gv_all" id='gv_add' name="permission[gv_add]" > Add
+                                              </label></div>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="gv_all" id='gv_view' name="permission[gv_view]" > View
+                                              </label></div>
+                                              <div class="checkbox icheck"><label>
+                                                <input type="checkbox" class="gv_all" id='gv_edit' name="permission[gv_edit]"> Edit
+                                              </label></div>
+                                             
+                                          </td>
+                                        </tr>
                                       </tbody>
                                       
                                     </table>

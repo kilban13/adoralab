@@ -289,7 +289,10 @@ class Roles_model extends CI_Model {
 							                            'purchase_approved_panel_action',
 							                            'purchase_approved_panel_notification',
 							                            'don_not_show_item_unit_price_view',
-							                            'don_not_show_purchase_unit_price_view'
+							                            'don_not_show_purchase_unit_price_view',
+							                            'gv_add',
+							                            'gv_view',
+							                            'gv_edit'
 													)));
 
 

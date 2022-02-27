@@ -225,7 +225,25 @@
           </ul>
         </li>
     <?php } ?>
-
+    <!--<li class="header">Gift voucher</li>-->
+    <?php if($CI->permissions('gv_add') || $CI->permissions('gv_view')) { ?>
+        <li class="voucher-list-active-li voucher-active-li import_voucher-active-li treeview">
+          <a href="#">
+            <i class="fa fa-gift text-aqua"></i> GIFT/SAMPLE
+            <span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+               <?php if($CI->permissions('gv_add')) { ?>
+              <li class="voucher-active-li"><a href="<?php echo $base_url; ?>voucher/add"><i class="fa fa-plus-square-o "></i> Add Gift/Sample</a></li>
+               <?php } ?>
+               <?php if($CI->permissions('gv_view')) { ?>
+              <li class="voucher-list-active-li"><a href="<?php echo $base_url; ?>voucher"><i class="fa fa-list "></i> Gift/Sample List</a></li>
+               <?php } ?>
+          </ul>
+        </li>
+    <?php } ?>
 		<!--<li class="header">CUSTOMERS</li>-->
     <?php if($CI->permissions('customers_add') || $CI->permissions('customers_view') || $CI->permissions('import_customers')) { ?>
     <li class="customers-view-active-li customers-active-li import_customers-active-li treeview">
